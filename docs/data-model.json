@@ -1,0 +1,1573 @@
+{
+  "product": "Voqiva",
+  "version": "3.0",
+  "conventions": {
+    "money": "integer INR (whole rupees)",
+    "ids": "uuid",
+    "time": "UTC timestamp"
+  },
+  "entities": [
+    {
+      "name": "PromptTemplate",
+      "layer": "seed",
+      "purpose": "Home 'Try asking' chips and Define-Objective scenario starters",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "prompt_text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "placement",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "home_suggestion",
+            "scenario_starter"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "FeeSchedule",
+      "layer": "seed",
+      "purpose": "Platform fees shown in the budget breakdown before launch",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "kind",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "synthesis_fee",
+            "disbursement_fee"
+          ]
+        },
+        {
+          "name": "amount_inr",
+          "type": "int",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "AudienceSegment",
+      "layer": "seed",
+      "purpose": "Ready-made panel audience (Gen Z, College students, Working professionals…) with its incentive rate and verification method",
+      "fields": [
+        {
+          "name": "key",
+          "type": "string",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "age_range",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "rate_inr",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "verification",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "rules",
+          "type": "json",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "Person",
+      "layer": "seed+runtime",
+      "purpose": "Voqiva verified panelist (seed, no cohort_import_id) or imported brand customer (runtime)",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "cohort_import_id",
+          "type": "uuid",
+          "required": false,
+          "references": "CohortImport.id"
+        },
+        {
+          "name": "full_name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "phone",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "gender",
+          "type": "enum",
+          "required": false,
+          "values": [
+            "male",
+            "female",
+            "other"
+          ]
+        },
+        {
+          "name": "birth_date",
+          "type": "date",
+          "required": false
+        },
+        {
+          "name": "city",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "occupation",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "attributes",
+          "type": "json",
+          "required": false
+        },
+        {
+          "name": "upi_vpa",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "aadhaar_verified_at",
+          "type": "timestamp",
+          "required": false
+        },
+        {
+          "name": "linkedin_verified_at",
+          "type": "timestamp",
+          "required": false
+        },
+        {
+          "name": "upi_verified_at",
+          "type": "timestamp",
+          "required": false
+        },
+        {
+          "name": "segments",
+          "type": "json",
+          "required": false,
+          "note": "stored in attributes.segments; also attributes.source, joined_at, quality_score, studies_30d"
+        }
+      ]
+    },
+    {
+      "name": "Workspace",
+      "layer": "runtime",
+      "purpose": "A brand account, e.g. UrbanKhaadi D2C",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "auto_reload_mandate_ref",
+          "type": "string",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "layer": "runtime",
+      "purpose": "A person who logs in",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "full_name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "Membership",
+      "layer": "runtime",
+      "purpose": "User's seat in a workspace (powers the brand switcher)",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "workspace_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Workspace.id"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "required": true,
+          "references": "User.id"
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "WalletTransaction",
+      "layer": "runtime",
+      "purpose": "Ledger; wallet balance is the sum of these",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "workspace_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Workspace.id"
+        },
+        {
+          "name": "study_id",
+          "type": "uuid",
+          "required": false,
+          "references": "Study.id"
+        },
+        {
+          "name": "kind",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "topup",
+            "incentive_reserve",
+            "synthesis_fee",
+            "disbursement_fee",
+            "refund",
+            "recruitment_boost"
+          ]
+        },
+        {
+          "name": "amount_inr",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "CohortImport",
+      "layer": "runtime",
+      "purpose": "A first-party customer list pulled from Shopify / Klaviyo / CSV",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "workspace_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Workspace.id"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "source",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "shopify",
+            "klaviyo",
+            "csv"
+          ]
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "Study",
+      "layer": "runtime",
+      "purpose": "Objective + AI plan + lifecycle + executive synthesis (one record, no separate Report)",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "workspace_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Workspace.id"
+        },
+        {
+          "name": "created_by",
+          "type": "uuid",
+          "required": true,
+          "references": "User.id"
+        },
+        {
+          "name": "parent_study_id",
+          "type": "uuid",
+          "required": false,
+          "references": "Study.id"
+        },
+        {
+          "name": "cohort_import_id",
+          "type": "uuid",
+          "required": false,
+          "references": "CohortImport.id"
+        },
+        {
+          "name": "audience_source",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "voqiva_panel",
+            "cohort_import",
+            "parent_study"
+          ]
+        },
+        {
+          "name": "objective",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "methodology",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "whatsapp_voice",
+            "voice_interview",
+            "survey",
+            "voice_plus_whatsapp"
+          ]
+        },
+        {
+          "name": "domain",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "sample_size",
+          "type": "int",
+          "required": false
+        },
+        {
+          "name": "incentive_inr",
+          "type": "int",
+          "required": false
+        },
+        {
+          "name": "reward_type",
+          "type": "enum",
+          "required": false,
+          "values": [
+            "upi_cash",
+            "amazon_voucher",
+            "myntra_voucher",
+            "mobile_recharge"
+          ]
+        },
+        {
+          "name": "language",
+          "type": "enum",
+          "required": false,
+          "values": [
+            "english",
+            "hindi",
+            "hinglish"
+          ]
+        },
+        {
+          "name": "max_duration_min",
+          "type": "int",
+          "required": false
+        },
+        {
+          "name": "launched_at",
+          "type": "timestamp",
+          "required": false
+        },
+        {
+          "name": "closed_at",
+          "type": "timestamp",
+          "required": false
+        },
+        {
+          "name": "synthesized_at",
+          "type": "timestamp",
+          "required": false
+        },
+        {
+          "name": "headline",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "summary",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "confidence_pct",
+          "type": "decimal",
+          "required": false
+        },
+        {
+          "name": "share_token",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "required": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "required": true
+        },
+        {
+          "name": "recruitment_boost",
+          "type": "int",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "AudienceCriterion",
+      "layer": "runtime",
+      "purpose": "One screener rule or quota (removable demographic chip)",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "study_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Study.id"
+        },
+        {
+          "name": "attribute",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "operator",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "eq",
+            "in",
+            "between",
+            "gte"
+          ]
+        },
+        {
+          "name": "value",
+          "type": "json",
+          "required": true
+        },
+        {
+          "name": "quota_pct",
+          "type": "int",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "Question",
+      "layer": "runtime",
+      "purpose": "One step of the interview protocol",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "study_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Study.id"
+        },
+        {
+          "name": "position",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "kind",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "screener",
+            "interview"
+          ]
+        },
+        {
+          "name": "section",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "prompt",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "input_type",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "voice",
+            "voice_with_card",
+            "slider",
+            "choice",
+            "text"
+          ]
+        },
+        {
+          "name": "probe_goal",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "config",
+          "type": "json",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "Session",
+      "layer": "runtime",
+      "purpose": "One person's screening, interview and payout within a study",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "study_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Study.id"
+        },
+        {
+          "name": "person_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Person.id"
+        },
+        {
+          "name": "screen_result",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "pending",
+            "qualified",
+            "disqualified",
+            "fraud"
+          ]
+        },
+        {
+          "name": "started_at",
+          "type": "timestamp",
+          "required": false
+        },
+        {
+          "name": "ended_at",
+          "type": "timestamp",
+          "required": false
+        },
+        {
+          "name": "recording_url",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "sentiment",
+          "type": "enum",
+          "required": false,
+          "values": [
+            "positive",
+            "neutral",
+            "negative"
+          ]
+        },
+        {
+          "name": "summary",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "payout_status",
+          "type": "enum",
+          "required": false,
+          "values": [
+            "pending",
+            "paid",
+            "failed"
+          ]
+        },
+        {
+          "name": "payout_ref",
+          "type": "string",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "TranscriptTurn",
+      "layer": "runtime",
+      "purpose": "One line of the moderator/participant dialogue",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "session_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Session.id"
+        },
+        {
+          "name": "question_id",
+          "type": "uuid",
+          "required": false,
+          "references": "Question.id"
+        },
+        {
+          "name": "speaker",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "moderator",
+            "participant"
+          ]
+        },
+        {
+          "name": "start_ms",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "text",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "Signal",
+      "layer": "runtime",
+      "purpose": "Real-time extracted entity / tag on a session",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "session_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Session.id"
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "polarity",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "positive",
+            "neutral",
+            "negative",
+            "critical"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Theme",
+      "layer": "runtime",
+      "purpose": "A synthesized insight card",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "study_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Study.id"
+        },
+        {
+          "name": "position",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "category",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "unmet_need",
+            "buying_driver",
+            "friction",
+            "preference"
+          ]
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "headline",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "body",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "evidence_level",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "verified",
+            "emerging"
+          ]
+        },
+        {
+          "name": "supporting_session_ids",
+          "type": "json",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "Evidence",
+      "layer": "runtime",
+      "purpose": "A quoted, timestamped clip proving a theme",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "theme_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Theme.id"
+        },
+        {
+          "name": "session_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Session.id"
+        },
+        {
+          "name": "start_ms",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "end_ms",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "quote",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "is_featured",
+          "type": "bool",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "Recommendation",
+      "layer": "runtime",
+      "purpose": "An action-plan card, incl. follow-up study suggestions",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "study_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Study.id"
+        },
+        {
+          "name": "theme_id",
+          "type": "uuid",
+          "required": false,
+          "references": "Theme.id"
+        },
+        {
+          "name": "position",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "workstream",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "product",
+            "pricing",
+            "gtm",
+            "research"
+          ]
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "body_md",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "impact",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        {
+          "name": "effort",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        {
+          "name": "status",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "proposed",
+            "adopted",
+            "in_progress",
+            "done"
+          ]
+        },
+        {
+          "name": "track",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "owner_team",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "external_ref",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "asset_url",
+          "type": "string",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "Metric",
+      "layer": "runtime",
+      "purpose": "A headline number on the report, a theme, or a recommendation",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "study_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Study.id"
+        },
+        {
+          "name": "theme_id",
+          "type": "uuid",
+          "required": false,
+          "references": "Theme.id"
+        },
+        {
+          "name": "recommendation_id",
+          "type": "uuid",
+          "required": false,
+          "references": "Recommendation.id"
+        },
+        {
+          "name": "position",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "participant_count",
+          "type": "int",
+          "required": false
+        },
+        {
+          "name": "value",
+          "type": "decimal",
+          "required": false
+        },
+        {
+          "name": "unit",
+          "type": "enum",
+          "required": false,
+          "values": [
+            "pct",
+            "inr",
+            "multiplier"
+          ]
+        },
+        {
+          "name": "swatch_hex",
+          "type": "string",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "Answer",
+      "layer": "runtime",
+      "purpose": "Structured slider/choice value for one question in a session",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "session_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Session.id"
+        },
+        {
+          "name": "question_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Question.id"
+        },
+        {
+          "name": "value_json",
+          "type": "json",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "Order",
+      "layer": "runtime",
+      "purpose": "A real purchase imported from the store; proves a respondent is a buyer",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "workspace_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Workspace.id"
+        },
+        {
+          "name": "person_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Person.id"
+        },
+        {
+          "name": "placed_at",
+          "type": "timestamp",
+          "required": true
+        },
+        {
+          "name": "value_inr",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "status",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "delivered",
+            "returned",
+            "rto"
+          ]
+        },
+        {
+          "name": "source_ref",
+          "type": "string",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "Consent",
+      "layer": "runtime",
+      "purpose": "DPDP research consent for a brand customer (customer circle)",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "workspace_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Workspace.id"
+        },
+        {
+          "name": "person_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Person.id"
+        },
+        {
+          "name": "channel",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "whatsapp"
+          ]
+        },
+        {
+          "name": "purpose",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "research"
+          ]
+        },
+        {
+          "name": "source",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "checkout_optin",
+            "whatsapp_invite",
+            "csv_attested"
+          ]
+        },
+        {
+          "name": "granted_at",
+          "type": "timestamp",
+          "required": true
+        },
+        {
+          "name": "withdrawn_at",
+          "type": "timestamp",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "Trigger",
+      "layer": "runtime",
+      "purpose": "Always-on rule that interviews customers when a store event happens",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "workspace_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Workspace.id"
+        },
+        {
+          "name": "study_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Study.id"
+        },
+        {
+          "name": "event",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "no_reorder_45d",
+            "return_or_rto",
+            "first_purchase",
+            "loyal_3plus"
+          ]
+        },
+        {
+          "name": "weekly_cap",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "active",
+          "type": "bool",
+          "required": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "required": true
+        },
+        {
+          "name": "last_run_at",
+          "type": "timestamp",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "Outcome",
+      "layer": "runtime",
+      "purpose": "Before/after store metric proving whether a recommendation worked",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "primaryKey": true
+        },
+        {
+          "name": "recommendation_id",
+          "type": "uuid",
+          "required": true,
+          "references": "Recommendation.id"
+        },
+        {
+          "name": "metric",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "repeat_rate",
+            "return_rate",
+            "aov",
+            "conversion_rate"
+          ]
+        },
+        {
+          "name": "change_ref",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "baseline_value",
+          "type": "decimal",
+          "required": true
+        },
+        {
+          "name": "baseline_at",
+          "type": "timestamp",
+          "required": true
+        },
+        {
+          "name": "current_value",
+          "type": "decimal",
+          "required": false
+        },
+        {
+          "name": "measured_at",
+          "type": "timestamp",
+          "required": false
+        },
+        {
+          "name": "source",
+          "type": "enum",
+          "required": true,
+          "values": [
+            "simulated",
+            "shopify"
+          ]
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Workspace",
+      "to": "Membership",
+      "cardinality": "one-to-many",
+      "label": "has members",
+      "via": "Membership.workspace_id"
+    },
+    {
+      "from": "User",
+      "to": "Membership",
+      "cardinality": "one-to-many",
+      "label": "joins workspaces as",
+      "via": "Membership.user_id"
+    },
+    {
+      "from": "Workspace",
+      "to": "WalletTransaction",
+      "cardinality": "one-to-many",
+      "label": "pays and tops up via",
+      "via": "WalletTransaction.workspace_id"
+    },
+    {
+      "from": "Workspace",
+      "to": "CohortImport",
+      "cardinality": "one-to-many",
+      "label": "imports customers as",
+      "via": "CohortImport.workspace_id"
+    },
+    {
+      "from": "Workspace",
+      "to": "Study",
+      "cardinality": "one-to-many",
+      "label": "runs",
+      "via": "Study.workspace_id"
+    },
+    {
+      "from": "User",
+      "to": "Study",
+      "cardinality": "one-to-many",
+      "label": "creates",
+      "via": "Study.created_by"
+    },
+    {
+      "from": "CohortImport",
+      "to": "Person",
+      "cardinality": "zero-or-one-to-many",
+      "label": "brings in",
+      "via": "Person.cohort_import_id"
+    },
+    {
+      "from": "CohortImport",
+      "to": "Study",
+      "cardinality": "zero-or-one-to-many",
+      "label": "is the audience for",
+      "via": "Study.cohort_import_id"
+    },
+    {
+      "from": "Study",
+      "to": "Study",
+      "cardinality": "zero-or-one-to-many",
+      "label": "spawns follow-up",
+      "via": "Study.parent_study_id"
+    },
+    {
+      "from": "Study",
+      "to": "WalletTransaction",
+      "cardinality": "zero-or-one-to-many",
+      "label": "is charged through",
+      "via": "WalletTransaction.study_id"
+    },
+    {
+      "from": "Study",
+      "to": "AudienceCriterion",
+      "cardinality": "one-to-many",
+      "label": "targets",
+      "via": "AudienceCriterion.study_id"
+    },
+    {
+      "from": "Study",
+      "to": "Question",
+      "cardinality": "one-to-many",
+      "label": "asks",
+      "via": "Question.study_id"
+    },
+    {
+      "from": "Study",
+      "to": "Session",
+      "cardinality": "one-to-many",
+      "label": "interviews through",
+      "via": "Session.study_id"
+    },
+    {
+      "from": "Person",
+      "to": "Session",
+      "cardinality": "one-to-many",
+      "label": "takes part in",
+      "via": "Session.person_id"
+    },
+    {
+      "from": "Session",
+      "to": "TranscriptTurn",
+      "cardinality": "one-to-many",
+      "label": "is recorded as",
+      "via": "TranscriptTurn.session_id"
+    },
+    {
+      "from": "Question",
+      "to": "TranscriptTurn",
+      "cardinality": "zero-or-one-to-many",
+      "label": "is discussed in",
+      "via": "TranscriptTurn.question_id"
+    },
+    {
+      "from": "Session",
+      "to": "Signal",
+      "cardinality": "one-to-many",
+      "label": "surfaces",
+      "via": "Signal.session_id"
+    },
+    {
+      "from": "Study",
+      "to": "Theme",
+      "cardinality": "one-to-many",
+      "label": "synthesizes into",
+      "via": "Theme.study_id"
+    },
+    {
+      "from": "Theme",
+      "to": "Evidence",
+      "cardinality": "one-to-many",
+      "label": "is proven by",
+      "via": "Evidence.theme_id"
+    },
+    {
+      "from": "Session",
+      "to": "Evidence",
+      "cardinality": "one-to-many",
+      "label": "is quoted in",
+      "via": "Evidence.session_id"
+    },
+    {
+      "from": "Study",
+      "to": "Recommendation",
+      "cardinality": "one-to-many",
+      "label": "recommends",
+      "via": "Recommendation.study_id"
+    },
+    {
+      "from": "Theme",
+      "to": "Recommendation",
+      "cardinality": "zero-or-one-to-many",
+      "label": "drives",
+      "via": "Recommendation.theme_id"
+    },
+    {
+      "from": "Study",
+      "to": "Metric",
+      "cardinality": "one-to-many",
+      "label": "reports",
+      "via": "Metric.study_id"
+    },
+    {
+      "from": "Theme",
+      "to": "Metric",
+      "cardinality": "zero-or-one-to-many",
+      "label": "is quantified by",
+      "via": "Metric.theme_id"
+    },
+    {
+      "from": "Recommendation",
+      "to": "Metric",
+      "cardinality": "zero-or-one-to-many",
+      "label": "is projected by",
+      "via": "Metric.recommendation_id"
+    },
+    {
+      "from": "Session",
+      "to": "Answer",
+      "cardinality": "one-to-many",
+      "label": "records",
+      "via": "Answer.session_id"
+    },
+    {
+      "from": "Question",
+      "to": "Answer",
+      "cardinality": "one-to-many",
+      "label": "is answered in",
+      "via": "Answer.question_id"
+    },
+    {
+      "from": "Person",
+      "to": "Order",
+      "cardinality": "one-to-many",
+      "label": "placed",
+      "via": "Order.person_id"
+    },
+    {
+      "from": "Workspace",
+      "to": "Order",
+      "cardinality": "one-to-many",
+      "label": "sold",
+      "via": "Order.workspace_id"
+    },
+    {
+      "from": "Person",
+      "to": "Consent",
+      "cardinality": "one-to-many",
+      "label": "granted",
+      "via": "Consent.person_id"
+    },
+    {
+      "from": "Workspace",
+      "to": "Consent",
+      "cardinality": "one-to-many",
+      "label": "holds",
+      "via": "Consent.workspace_id"
+    },
+    {
+      "from": "Workspace",
+      "to": "Trigger",
+      "cardinality": "one-to-many",
+      "label": "listens with",
+      "via": "Trigger.workspace_id"
+    },
+    {
+      "from": "Study",
+      "to": "Trigger",
+      "cardinality": "one-to-one",
+      "label": "is fed by",
+      "via": "Trigger.study_id"
+    },
+    {
+      "from": "Recommendation",
+      "to": "Outcome",
+      "cardinality": "one-to-many",
+      "label": "is proven by",
+      "via": "Outcome.recommendation_id"
+    }
+  ]
+}
