@@ -238,7 +238,7 @@ function modeChooser(){
       <span class="small muted">${foot}</span></section>`;
   return `<div class="grid g2" style="align-items:stretch">
     ${card('customers','Talk to your customers','Ask people who already bought from you','Purchase-verified buyers who opted in. Every answer sits next to their real order.','e.g. Why don’t first-time buyers reorder?',`${freeLeft(ui.ws)} of ${FREE_QUOTA} free customer interviews left this month.`,`<span class="pill buy">${ic('check')}Real orders</span>`)}
-    ${card('audience','Find your audience','No customers yet? Reach exactly the right people','Pick age, city, job, income, what they buy and the apps they use. Everyone is ID- and UPI-verified.','e.g. Would young parents pay for a meal-kit subscription?',`${PANEL_TOTAL().toLocaleString('en-IN')} verified people across ${SEGMENTS.length} audiences · from ₹180 per completed interview.`,`<span class="pill gold">${ic('shield')}Verified panel</span>`)}
+    ${card('audience','Talk to your future customers','Validate before you launch: ask the people who\u2019ll buy it','Pick age, city, job, income, what they buy and the apps they use. Everyone is ID- and UPI-verified.','e.g. Would young parents pay for a meal-kit subscription?',`${PANEL_TOTAL().toLocaleString('en-IN')} verified people across ${SEGMENTS.length} audiences · from ₹180 per completed interview.`,`<span class="pill gold">${ic('shield')}Verified panel</span>`)}
   </div>`;
 }
 const _vHome6 = vHome;
@@ -249,7 +249,7 @@ function modeTabs(){
   const aud = ui.nd.source==='voqiva_panel';
   return `<div class="tabs" role="tablist" style="align-self:flex-start">
     <button class="${aud?'':'on'}" data-act="nd-mode" data-k="customers">${ic('users').replace('<svg','<svg style="width:15px;vertical-align:-3px"')} Talk to your customers</button>
-    <button class="${aud?'on':''}" data-act="nd-mode" data-k="audience">${ic('search').replace('<svg','<svg style="width:15px;vertical-align:-3px"')} Find your audience</button></div>`;
+    <button class="${aud?'on':''}" data-act="nd-mode" data-k="audience">${ic('search').replace('<svg','<svg style="width:15px;vertical-align:-3px"')} Talk to your future customers</button></div>`;
 }
 const _vNew6 = vNew;
 vNew = function(){

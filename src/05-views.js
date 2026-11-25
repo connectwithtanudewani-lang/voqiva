@@ -80,9 +80,9 @@ function render(){
   renderRail(); renderTop();
   const view = document.getElementById('view'), foot = document.getElementById('footer');
   foot.innerHTML='';
-  const fn = {welcome:vWelcome,panel:vPanel,always:vAlways,home:vHome,studies:vStudies,new:vNew,plan:vPlan,live:vLive,report:vReport,actions:vActions,participants:vParticipants,wallet:vWallet,account:vAccount,help:vHelp}[v]||vHome;
+  const fn = Object.assign({welcome:vWelcome,panel:vPanel,always:vAlways,home:vHome,studies:vStudies,new:vNew,plan:vPlan,live:vLive,report:vReport,actions:vActions,participants:vParticipants,wallet:vWallet,account:vAccount,help:vHelp}, (typeof EXTRA_VIEWS!=='undefined'?EXTRA_VIEWS:{}))[v]||vHome;
   const s = id? byId('Study',id) : null;
-  if(['plan','live','report','actions'].includes(v) && (!s || s.workspace_id!==ui.ws)){ view.innerHTML = `<div class="empty">That study isn't in this workspace. <a href="#home">Back to home</a></div>`; return; }
+  if(['plan','live','report','actions','decide','brief'].includes(v) && (!s || s.workspace_id!==ui.ws)){ view.innerHTML = `<div class="empty">That study isn't in this workspace. <a href="#home">Back to home</a></div>`; return; }
   view.innerHTML = fn(s);
   if(v==='new') updateNewSide();
   if(ui.focusTheme && v==='report'){ const el=document.getElementById('theme-'+ui.focusTheme); if(el) el.scrollIntoView({block:'start'}); ui.focusTheme=null; }
