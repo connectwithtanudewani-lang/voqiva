@@ -36,11 +36,11 @@ function audienceBase(src){
 }
 
 // ---------- free tier & pricing ----------
-const FREE_QUOTA = 5;
+const FREE_QUOTA = 10;
 const PLANS = [
-  {k:'free',name:'Free',sub:'Try it with one question',price:'₹0',per:'',feats:['1 study, up to 5 interviews','Purchase-verified quotes','Theme summary'],cta:'Start free',line:'1 study, up to 5 interviews with your own buyers. Purchase-verified quotes and a theme summary.'},
-  {k:'payg',name:'Per study',sub:'For a specific decision',price:'₹2,000',per:'/ study',hl:true,feats:['Up to 40 voice interviews','Said-vs-did order matching','Recommended fixes with impact','Report you can share with your team'],cta:'Choose per study',line:'Up to 40 voice interviews, said-vs-did order matching, recommended fixes and a shareable report.'},
-  {k:'always',name:'Growth',sub:'For teams running research every week',price:'₹14,999',per:'/ month',feats:['Unlimited studies, 300 interviews','Outcome tracking on every fix','Buyer panels and segments','5 team seats, priority support'],cta:'Choose Growth',line:'Unlimited studies and 300 interviews a month, outcome tracking, buyer panels and 5 seats.'}
+  {k:'free',name:'Starter',price:'Free',line:'10 interviews a month with your own customers. Synthesis and payout fees waived. You only fund the incentives.'},
+  {k:'payg',name:'Pay as you go',price:'₹2,000 per study',line:'Any size, own customers or the Voqiva panel. AI synthesis ₹1,500 + payouts ₹500, plus incentives.'},
+  {k:'always',name:'Always-on',price:'₹14,999 / month',line:'Unlimited triggers, weekly conversations with churned, returning and new buyers, outcome tracking. Incentives extra.'}
 ];
 function monthStart(){ const d=new Date(); return new Date(d.getFullYear(),d.getMonth(),1).getTime(); }
 function freeUsed(wsId){
@@ -292,7 +292,7 @@ function renderRail(){
   const on = list => list.includes(v)?'on':'';
   const act = rows('Trigger',t=>t.workspace_id===ui.ws&&t.active).length;
   document.getElementById('rail').innerHTML = `
-    <div class="brand"><div class="logo">${ic('wave')}</div><b>Voqiva</b><span class="tag-pro">PRO</span></div>
+    <div class="brand"><div class="logo">V</div><b>Voqiva</b><span class="tag-pro">PRO</span></div>
     <a class="nav ${on(['home'])}" href="#home">${ic('home')}Home</a>
     <a class="nav ${on(['studies','new','plan','live','report','actions'])}" href="#studies">${ic('folder')}Studies ${live?`<span class="pill ok">${live} live</span>`:''}</a>
     <a class="nav ${on(['always'])}" href="#always">${ic('bolt')}Always-on ${act?`<span class="pill acc">${act}</span>`:''}</a>
@@ -539,7 +539,7 @@ function vWallet(){
   const tx = rows('WalletTransaction',t=>t.workspace_id===ui.ws).sort((a,b)=>T(b.created_at)-T(a.created_at));
   const KIND = {topup:'Top-up',incentive_reserve:'Incentive reserve',synthesis_fee:'AI synthesis fee',disbursement_fee:'Payout & escrow fee',refund:'Unused incentive refund',recruitment_boost:'Recruitment boost (ads)'};
   return `<section class="stack" style="gap:4px"><h1>Wallet &amp; plans</h1><p class="muted">Public pricing in rupees. The balance is the sum of the ledger below.</p></section>
-  <section class="grid g3">${PLANS.map(p=>`<div class="card stack" style="${p.hl?'border-color:var(--fg)':''}"><div class="row between"><b style="font-family:var(--display);font-size:19px">${p.name}</b>${p.k==='free'?`<span class="pill acc">${freeLeft(ui.ws)} of ${FREE_QUOTA} left this month</span>`:''}</div><div class="num" style="font-family:var(--display);font-size:30px;font-weight:600">${p.price}<small class="muted" style="font:400 14px var(--body);margin-left:4px">${p.per}</small></div><p class="small muted">${p.line}</p></div>`).join('')}</section>
+  <section class="grid g3">${PLANS.map(p=>`<div class="card stack" style="${p.k==='free'?'border-color:var(--accent)':''}"><div class="row between"><b style="font-family:var(--display);font-size:19px">${p.name}</b>${p.k==='free'?`<span class="pill acc">${freeLeft(ui.ws)} of ${FREE_QUOTA} left this month</span>`:''}</div><div class="num" style="font-family:var(--display);font-size:26px;font-weight:600">${p.price}</div><p class="small muted">${p.line}</p></div>`).join('')}</section>
   <section class="grid g2">
     <div class="card kpi stack"><span class="eyebrow">Available balance</span><div class="big num">${inr(walletBalance(ui.ws))}</div>
       <div class="row">${[5000,10000,25000].map(a=>`<button class="btn sm" data-act="topup" data-amt="${a}">+ ${inr(a)}</button>`).join('')}</div><span class="small muted">Top-ups are simulated UPI payments.</span></div>

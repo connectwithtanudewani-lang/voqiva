@@ -8,11 +8,6 @@ function toast(msg){ const r=document.getElementById('toast-root'); r.innerHTML=
 async function copyText(t){ try{ await navigator.clipboard.writeText(t); toast('Copied to clipboard'); }catch(e){ const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy'); toast('Copied to clipboard');}catch(_){ toast('Copy failed. Select the text manually.'); } ta.remove(); } }
 
 const I = {
-  wave:'<path d="M3 12h2M7 8v8M11 5v14M15 9v6M19 11v2"/>',
-  store:'<path d="M4 9l1.5-5h13L20 9M4 9h16v11H4zM9 20v-6h6v6"/>',
-  chat:'<path d="M4 20l1.3-3.9A8 8 0 1 1 8 19.3z"/>',
-  lock:'<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
-  rupee:'<path d="M7 4h11M7 9h11M7 4c6 0 7 10 0 10h-.5L15 21"/>',
   home:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',
   folder:'<path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c2 .7 3.2 2.4 3.5 5.2"/>',
@@ -40,7 +35,7 @@ function renderRail(){
   const v = ui.route.view; const live = wsStudies().filter(s=>studyStatus(s)==='live').length;
   const on = list => list.includes(v)?'on':'';
   document.getElementById('rail').innerHTML = `
-    <div class="brand"><div class="logo">${ic('wave')}</div><b>Voqiva</b><span class="tag-pro">PRO</span></div>
+    <div class="brand"><div class="logo">V</div><b>Voqiva</b><span class="tag-pro">PRO</span></div>
     <a class="nav ${on(['home'])}" href="#home">${ic('home')}Home</a>
     <a class="nav ${on(['studies','new','plan','live','report','actions'])}" href="#studies">${ic('folder')}Studies ${live?`<span class="pill ok pill-sm">${live} live</span>`:''}</a>
     <a class="nav ${on(['participants'])}" href="#participants">${ic('users')}Participants</a>

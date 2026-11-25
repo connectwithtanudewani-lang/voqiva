@@ -16,8 +16,7 @@ Object.assign(SUBMIT, {
     const name=document.getElementById('su-name').value.trim(), brand=document.getElementById('su-brand').value.trim(), email=document.getElementById('su-email').value.trim();
     if(!name||!brand) return;
     upd('User',ui.user,{full_name:name,email:email||me().email}); upd('Workspace',ui.ws,{name:brand});
-    const v=id=>{const e=document.getElementById(id);return e?e.value.trim():'';};
-    Object.assign(meta(),{store_url:v('su-store'),monthly_orders:v('su-orders'),whatsapp:v('su-wa'),dpdp_ack:true,onboarded:true,signup_at:iso(Date.now()),checklist_dismissed:false,optin_done:false,acted:false});
+    Object.assign(meta(),{onboarded:true,signup_at:iso(Date.now()),checklist_dismissed:false,optin_done:false,acted:false});
     save(); go('home'); toast('Welcome to Voqiva, '+name.split(' ')[0]+'. Your workspace is ready.');
   }
 });
