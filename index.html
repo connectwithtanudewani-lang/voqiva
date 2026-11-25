@@ -3,16 +3,17 @@
 <title>Voqiva</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&display=swap">
 <style>
 /* Layout: fixed left rail + sticky top bar; main column of cards on a faintly indigo-tinted ground */
 :root{
-  --bg:#F5F5FA; --surface:#FFFFFF; --surface-2:#EFEFF8; --surface-3:#E6E6F4; --line:#E0E0EC;
-  --fg:#16172B; --muted:#5D5F7A; --faint:#8A8CA6;
-  --accent:#4A3FDB; --accent-2:#3A30B8; --accent-fg:#FFFFFF; --accent-soft:#E6E4FC;
-  --ok:#0B7F57; --ok-soft:#D3F5E5; --ok-strong:#5EE0A8;
-  --warn:#A65F00; --warn-soft:#FFEFD3; --bad:#BE2F37; --bad-soft:#FDE2E3;
-  --shadow:0 1px 2px rgba(22,23,43,.05),0 4px 16px rgba(22,23,43,.04);
+  --bg:#F7F6F3; --surface:#FFFFFF; --surface-2:#F7F6F3; --surface-3:#EFEDE8; --line:#E7E4DE;
+  --fg:#16181A; --muted:#5E6266; --faint:#8B8F93;
+  --accent:#0F5662; --accent-2:#0A4550; --accent-fg:#FFFFFF; --accent-soft:#E2EFF0;
+  --ok:#1E7A4C; --ok-soft:#E5F4EA; --ok-strong:#34A866;
+  --warn:#9A5A06; --warn-soft:#FDF1DE; --bad:#B3261E; --bad-soft:#FBE5E3;
+  --dash:#C9C3B8; --wa-bg:#EFEAE2; --wa-out:#D9FDD3; --live-dot:#E8A33D;
+  --shadow:none;
   --display:"Source Serif 4",Georgia,"Times New Roman",serif;
   --body:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --r:12px; --r-sm:8px;
@@ -262,6 +263,148 @@ body.landing .content{max-width:1120px;margin:0 auto}
 .lp-n{font-family:var(--display);font-size:28px;color:var(--accent);font-weight:600}
 .lp-final{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;align-items:start;padding:32px}
 @media (max-width:860px){.lp-hero,.lp-compare,.lp-final{grid-template-columns:minmax(0,1fr)}.lp-phone{justify-self:stretch;max-width:none}.lp-proof{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ===== v5 · UX Pilot design: warm paper, petrol accent, outline-first buttons ===== */
+body{font-size:14.5px}
+.card{box-shadow:none;border-color:var(--line);border-radius:12px}
+.btn{height:44px;padding:0 18px;border-radius:12px;border:1px solid color-mix(in srgb,var(--fg) 80%,transparent);background:var(--surface);color:var(--fg);font-weight:500}
+.btn:hover{background:var(--surface-2)}
+.btn.sm{height:36px;padding:0 12px;border-radius:10px;border-color:var(--line);font-size:13px}
+.btn.lg{height:48px;padding:0 22px;font-size:15px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:600}
+.btn.primary:hover{background:var(--accent-2)}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--fg);text-decoration:underline;text-decoration-color:var(--line);text-decoration-thickness:2px;text-underline-offset:6px}
+.btn.ghost:hover{text-decoration-color:var(--fg);background:transparent}
+.btn.accent{border-color:var(--fg);color:var(--fg)}
+.btn.accent:hover{background:var(--surface-2)}
+.rail{background:var(--surface)}
+.top{background:color-mix(in srgb,var(--surface) 92%,transparent)}
+.nav{color:var(--fg)}
+.nav.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.nav.on .count{color:var(--accent)}
+.logo{background:transparent;color:var(--accent);width:auto;height:auto}
+.logo svg{width:22px;height:22px}
+.brand b{font-weight:600}
+.hero{background:var(--surface)}
+.prompt-box{background:var(--surface);border-color:var(--line)}
+.prompt-box:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+input.field,select.field,textarea.field{border-color:var(--line);border-radius:12px;min-height:44px}
+input.field:focus,select.field:focus,textarea.field:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.well{background:var(--surface-2);border:1px solid var(--line)}
+.quote{border-left:0;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.quote.friction,.quote.pos{border-left:0}
+.quote p{font-family:var(--display);font-style:normal;font-size:16.5px}
+.pill.buy{background:var(--ok-soft);border-color:transparent;color:var(--ok)}
+.pill.buy svg{color:var(--ok)}
+.pill.warn{color:var(--warn)}
+.pill.warn:not(:has(.dot))::before{background:var(--live-dot)}
+.pill.hyp{background:transparent;border:1px dashed var(--dash);color:var(--muted)}
+.bar{background:var(--line);height:6px}
+.bar>i{background:var(--fg)}
+.bar.ok>i{background:var(--ok-strong)}
+.tabs{background:transparent;border:1px solid var(--line);padding:3px}
+.tabs button.on{background:var(--surface-2);box-shadow:none;color:var(--fg)}
+.chip{background:var(--accent-soft);color:var(--accent)}
+.chip.plain{background:var(--surface);border:1px solid var(--line);color:var(--fg)}
+.kpi .big{font-size:34px}
+.eyebrow{font-size:12px;font-weight:500;letter-spacing:.08em;color:var(--muted)}
+/* WhatsApp-authentic transcript */
+.transcript{background:var(--wa-bg);border-radius:12px;padding:14px}
+.bubble{border-radius:12px;font-size:14px;line-height:1.4}
+.bubble.mod{background:#fff;border-top-left-radius:4px}
+.bubble.par{background:var(--wa-out);color:var(--fg);border-top-right-radius:4px}
+.vn svg{background:var(--fg);color:#fff}
+.vn.dark svg{background:var(--fg);color:#fff}
+.vn .bars i{background:var(--fg);opacity:.75}
+.vn.dark .bars i{background:var(--fg)}
+.sess.sel{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.stepper-nav li.cur>span{color:var(--accent);background:var(--accent-soft)}
+.stepper-nav li.cur .sn{background:var(--accent)}
+.stepper-nav li.done .sn{background:var(--fg)}
+.cl li.done .sn{background:var(--fg);border-color:var(--fg)}
+.cl li.next{background:var(--surface-2)}
+.checklist{border-color:var(--line)}
+.card-link:hover{border-color:var(--fg);box-shadow:none}
+.reveal{background:var(--fg)}
+.reveal .btn.primary{background:#fff;border-color:#fff;color:var(--fg)}
+.anchor{border-color:var(--dash)}
+.footer-bar{background:var(--surface)}
+/* landing (UX Pilot layout) */
+body.landing{background:#fff}
+body.landing .content{max-width:none;padding:0}
+.lpx{color:var(--fg)}
+.lpx .wrap{max-width:1240px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.lpx header{border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);background:rgba(255,255,255,.94);backdrop-filter:blur(8px);z-index:5}
+.lpx header .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:68px}
+.lpx .brandx{display:flex;align-items:center;gap:8px;font-family:var(--display);font-size:22px;font-weight:600}
+.lpx .brandx svg{width:22px;height:22px;color:var(--accent)}
+.lpx .navx{display:flex;gap:28px;font-size:15px}
+.lpx .navx button{background:none;border:0;color:var(--muted);cursor:pointer;font-weight:500}
+.lpx .navx button:hover{color:var(--fg)}
+.lpx .hero2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:center;padding-top:88px;padding-bottom:110px}
+.lpx .livechip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;color:var(--muted);font-weight:500}
+.lpx .livechip i{width:8px;height:8px;border-radius:50%;background:var(--live-dot)}
+.lpx .livechip b{color:var(--warn);font-weight:500}
+.lpx h1.big{font-size:clamp(44px,5.4vw,64px);line-height:1.08;letter-spacing:-.02em;margin-top:28px;max-width:12ch}
+.lpx .lead{font-size:18px;line-height:1.65;color:var(--muted);max-width:36rem;margin-top:24px}
+.lpx .ctas{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-top:36px}
+.lpx dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;max-width:32rem;margin:56px 0 0;padding-top:32px;border-top:1px solid var(--line)}
+.lpx dt{font-size:13px;color:var(--muted)}
+.lpx dd{margin:4px 0 0;font-family:var(--display);font-size:24px;font-weight:600}
+.lpx .chat{max-width:460px;margin:0 auto;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff}
+.lpx .chat-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.lpx .chat-b{background:var(--wa-bg);padding:20px 16px 64px;display:flex;flex-direction:column;gap:12px}
+.lpx .day{align-self:center;background:rgba(255,255,255,.8);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--muted);font-weight:500}
+.lpx .in{max-width:82%;background:#fff;border-radius:12px;border-top-left-radius:4px;padding:10px 14px;font-size:14px;line-height:1.4}
+.lpx .out{margin-left:auto;width:78%;background:var(--wa-out);border-radius:12px;border-top-right-radius:4px;padding:10px 12px}
+.lpx .tr{margin-left:auto;width:78%;border:1px dashed var(--dash);background:rgba(255,255,255,.7);border-radius:12px;padding:8px 12px;font-size:13px;font-style:italic;color:var(--muted);line-height:1.4}
+.lpx .time{display:block;text-align:right;font-size:11px;color:var(--muted);margin-top:4px}
+.lpx .play{width:36px;height:36px;border-radius:50%;background:var(--fg);color:#fff;display:grid;place-items:center;flex:none;border:0}
+.lpx .play svg{width:12px;height:12px}
+.lpx .wave{display:flex;align-items:center;gap:3px;height:28px;flex:1}
+.lpx .wave i{width:3px;border-radius:2px;background:var(--fg);animation:none}
+.lpx .wave i.off{background:color-mix(in srgb,var(--muted) 40%,transparent)}
+.lpx .themechip{position:absolute;left:-28px;bottom:-56px;width:290px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px}
+.lpx .band{background:var(--surface-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.lpx .trust{display:flex;flex-wrap:wrap;justify-content:space-between;gap:20px;padding-top:26px;padding-bottom:26px;font-size:14px;color:var(--muted)}
+.lpx .trust span{display:flex;align-items:center;gap:8px}
+.lpx .trust svg{width:17px;height:17px}
+.lpx .pad{padding-top:96px;padding-bottom:96px}
+.lpx .kick{font-size:13px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lpx h2.sec{font-size:clamp(30px,3.4vw,40px);line-height:1.2;margin-top:12px;max-width:22ch}
+.lpx table.cmp{width:100%;min-width:680px;border-collapse:collapse;font-size:15px}
+.lpx table.cmp th,.lpx table.cmp td{padding:20px 24px;border-bottom:1px solid var(--line);text-align:left}
+.lpx table.cmp thead th{background:var(--surface-2);font-weight:500;color:var(--muted);font-size:15px;text-transform:none;letter-spacing:0}
+.lpx table.cmp tbody tr:last-child td{border-bottom:0}
+.lpx table.cmp td:first-child{font-weight:500}
+.lpx table.cmp td:nth-child(2){color:var(--muted)}
+.lpx .tick{color:var(--ok);margin-right:8px;font-weight:700}
+.lpx .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin-top:48px}
+.lpx .step{background:#fff;border:1px solid var(--line);border-radius:12px;padding:28px;display:flex;flex-direction:column;gap:8px}
+.lpx .step .n{font-family:var(--display);font-size:40px;font-weight:600;line-height:1;color:var(--dash)}
+.lpx .step h3{font-size:20px;margin-top:16px}
+.lpx .mini{margin-top:16px;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:12px 16px;font-size:14px;color:var(--muted);display:flex;align-items:center;gap:12px}
+.lpx .plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin-top:56px}
+.lpx .plan{border:1px solid var(--line);border-radius:12px;padding:32px;display:flex;flex-direction:column;position:relative}
+.lpx .plan.hl{border-color:var(--fg)}
+.lpx .plan .tag{position:absolute;top:-12px;left:32px;border:1px solid var(--line);background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:2px 12px;font-size:12px;font-weight:500}
+.lpx .plan .price{font-family:var(--display);font-size:40px;font-weight:600;line-height:1;margin-top:24px}
+.lpx .plan .price small{font-family:var(--body);font-size:15px;font-weight:400;color:var(--muted);margin-left:4px}
+.lpx .plan ul{list-style:none;padding:0;margin:32px 0 40px;display:flex;flex-direction:column;gap:12px;font-size:15px}
+.lpx .plan li{display:flex;gap:12px}
+.lpx .plan li::before{content:"✓";color:var(--muted);font-size:13px;margin-top:2px}
+.lpx .plan .btn{margin-top:auto;width:100%}
+.lpx .su{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px}
+.lpx form.box{border:1px solid var(--line);border-radius:12px;background:#fff;padding:36px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.lpx form.box .full{grid-column:1/-1}
+.lpx form.box label.lb{font-size:14px;font-weight:500;display:block;margin-bottom:8px}
+.lpx .pre{display:flex;align-items:center;height:48px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.lpx .pre:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.lpx .pre span{padding:0 16px;border-right:1px solid var(--line);color:var(--muted);height:100%;display:flex;align-items:center}
+.lpx .pre input{border:0;height:100%;flex:1;padding:0 16px;min-width:0;font-size:15px;background:transparent}
+.lpx .pre input:focus{outline:none}
+.lpx footer{border-top:1px solid var(--line);padding-top:28px;padding-bottom:40px;font-size:13px;color:var(--muted)}
+@media (max-width:960px){.lpx .hero2,.lpx .su{grid-template-columns:minmax(0,1fr)}.lpx .steps,.lpx .plans{grid-template-columns:minmax(0,1fr)}.lpx .themechip{position:static;width:auto;margin-top:16px}.lpx .navx{display:none}.lpx form.box{grid-template-columns:minmax(0,1fr);padding:24px}}
 </style>
 </head><body><script>
 // ---------- Study scripts: questions, answer pools, theme rules, recommendations ----------
@@ -1263,6 +1406,11 @@ function toast(msg){ const r=document.getElementById('toast-root'); r.innerHTML=
 async function copyText(t){ try{ await navigator.clipboard.writeText(t); toast('Copied to clipboard'); }catch(e){ const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy'); toast('Copied to clipboard');}catch(_){ toast('Copy failed. Select the text manually.'); } ta.remove(); } }
 
 const I = {
+  wave:'<path d="M3 12h2M7 8v8M11 5v14M15 9v6M19 11v2"/>',
+  store:'<path d="M4 9l1.5-5h13L20 9M4 9h16v11H4zM9 20v-6h6v6"/>',
+  chat:'<path d="M4 20l1.3-3.9A8 8 0 1 1 8 19.3z"/>',
+  lock:'<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+  rupee:'<path d="M7 4h11M7 9h11M7 4c6 0 7 10 0 10h-.5L15 21"/>',
   home:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',
   folder:'<path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c2 .7 3.2 2.4 3.5 5.2"/>',
@@ -1290,7 +1438,7 @@ function renderRail(){
   const v = ui.route.view; const live = wsStudies().filter(s=>studyStatus(s)==='live').length;
   const on = list => list.includes(v)?'on':'';
   document.getElementById('rail').innerHTML = `
-    <div class="brand"><div class="logo">V</div><b>Voqiva</b><span class="tag-pro">PRO</span></div>
+    <div class="brand"><div class="logo">${ic('wave')}</div><b>Voqiva</b><span class="tag-pro">PRO</span></div>
     <a class="nav ${on(['home'])}" href="#home">${ic('home')}Home</a>
     <a class="nav ${on(['studies','new','plan','live','report','actions'])}" href="#studies">${ic('folder')}Studies ${live?`<span class="pill ok pill-sm">${live} live</span>`:''}</a>
     <a class="nav ${on(['participants'])}" href="#participants">${ic('users')}Participants</a>
@@ -1974,11 +2122,11 @@ function audienceBase(src){
 }
 
 // ---------- free tier & pricing ----------
-const FREE_QUOTA = 10;
+const FREE_QUOTA = 5;
 const PLANS = [
-  {k:'free',name:'Starter',price:'Free',line:'10 interviews a month with your own customers. Synthesis and payout fees waived. You only fund the incentives.'},
-  {k:'payg',name:'Pay as you go',price:'₹2,000 per study',line:'Any size, own customers or the Voqiva panel. AI synthesis ₹1,500 + payouts ₹500, plus incentives.'},
-  {k:'always',name:'Always-on',price:'₹14,999 / month',line:'Unlimited triggers, weekly conversations with churned, returning and new buyers, outcome tracking. Incentives extra.'}
+  {k:'free',name:'Free',sub:'Try it with one question',price:'₹0',per:'',feats:['1 study, up to 5 interviews','Purchase-verified quotes','Theme summary'],cta:'Start free',line:'1 study, up to 5 interviews with your own buyers. Purchase-verified quotes and a theme summary.'},
+  {k:'payg',name:'Per study',sub:'For a specific decision',price:'₹2,000',per:'/ study',hl:true,feats:['Up to 40 voice interviews','Said-vs-did order matching','Recommended fixes with impact','Report you can share with your team'],cta:'Choose per study',line:'Up to 40 voice interviews, said-vs-did order matching, recommended fixes and a shareable report.'},
+  {k:'always',name:'Growth',sub:'For teams running research every week',price:'₹14,999',per:'/ month',feats:['Unlimited studies, 300 interviews','Outcome tracking on every fix','Buyer panels and segments','5 team seats, priority support'],cta:'Choose Growth',line:'Unlimited studies and 300 interviews a month, outcome tracking, buyer panels and 5 seats.'}
 ];
 function monthStart(){ const d=new Date(); return new Date(d.getFullYear(),d.getMonth(),1).getTime(); }
 function freeUsed(wsId){
@@ -2230,7 +2378,7 @@ function renderRail(){
   const on = list => list.includes(v)?'on':'';
   const act = rows('Trigger',t=>t.workspace_id===ui.ws&&t.active).length;
   document.getElementById('rail').innerHTML = `
-    <div class="brand"><div class="logo">V</div><b>Voqiva</b><span class="tag-pro">PRO</span></div>
+    <div class="brand"><div class="logo">${ic('wave')}</div><b>Voqiva</b><span class="tag-pro">PRO</span></div>
     <a class="nav ${on(['home'])}" href="#home">${ic('home')}Home</a>
     <a class="nav ${on(['studies','new','plan','live','report','actions'])}" href="#studies">${ic('folder')}Studies ${live?`<span class="pill ok">${live} live</span>`:''}</a>
     <a class="nav ${on(['always'])}" href="#always">${ic('bolt')}Always-on ${act?`<span class="pill acc">${act}</span>`:''}</a>
@@ -2477,7 +2625,7 @@ function vWallet(){
   const tx = rows('WalletTransaction',t=>t.workspace_id===ui.ws).sort((a,b)=>T(b.created_at)-T(a.created_at));
   const KIND = {topup:'Top-up',incentive_reserve:'Incentive reserve',synthesis_fee:'AI synthesis fee',disbursement_fee:'Payout & escrow fee',refund:'Unused incentive refund',recruitment_boost:'Recruitment boost (ads)'};
   return `<section class="stack" style="gap:4px"><h1>Wallet &amp; plans</h1><p class="muted">Public pricing in rupees. The balance is the sum of the ledger below.</p></section>
-  <section class="grid g3">${PLANS.map(p=>`<div class="card stack" style="${p.k==='free'?'border-color:var(--accent)':''}"><div class="row between"><b style="font-family:var(--display);font-size:19px">${p.name}</b>${p.k==='free'?`<span class="pill acc">${freeLeft(ui.ws)} of ${FREE_QUOTA} left this month</span>`:''}</div><div class="num" style="font-family:var(--display);font-size:26px;font-weight:600">${p.price}</div><p class="small muted">${p.line}</p></div>`).join('')}</section>
+  <section class="grid g3">${PLANS.map(p=>`<div class="card stack" style="${p.hl?'border-color:var(--fg)':''}"><div class="row between"><b style="font-family:var(--display);font-size:19px">${p.name}</b>${p.k==='free'?`<span class="pill acc">${freeLeft(ui.ws)} of ${FREE_QUOTA} left this month</span>`:''}</div><div class="num" style="font-family:var(--display);font-size:30px;font-weight:600">${p.price}<small class="muted" style="font:400 14px var(--body);margin-left:4px">${p.per}</small></div><p class="small muted">${p.line}</p></div>`).join('')}</section>
   <section class="grid g2">
     <div class="card kpi stack"><span class="eyebrow">Available balance</span><div class="big num">${inr(walletBalance(ui.ws))}</div>
       <div class="row">${[5000,10000,25000].map(a=>`<button class="btn sm" data-act="topup" data-amt="${a}">+ ${inr(a)}</button>`).join('')}</div><span class="small muted">Top-ups are simulated UPI payments.</span></div>
@@ -2772,7 +2920,7 @@ function renderRail(){
   const on = list => list.includes(v)?'on':'';
   const act = rows('Trigger',t=>t.workspace_id===ui.ws&&t.active).length;
   document.getElementById('rail').innerHTML = `
-    <a class="brand" href="#home" style="text-decoration:none;color:inherit"><div class="logo">V</div><b>Voqiva</b></a>
+    <a class="brand" href="#home" style="text-decoration:none;color:inherit"><div class="logo">${ic('wave')}</div><b>Voqiva</b></a>
     <a class="nav ${on(['home'])}" href="#home">${ic('home')}Home</a>
     <span class="nav-group">Research</span>
     <a class="nav ${on(['studies','new','plan','live','report','actions'])}" href="#studies">${ic('folder')}Studies ${live?`<span class="count">${live} live</span>`:''}</a>
@@ -2872,49 +3020,97 @@ function mobileCTA(label, href){ return `<div class="mcta"><a class="btn primary
 // ---------- landing page ----------
 function vWelcome(){
   const done = rows('Session',x=>x.ended_at);
-  const verified = done.filter(x=>buyerStats(x.person_id)).length;
+  const own = done.filter(x=>{const st=byId('Study',x.study_id);return st&&st.audience_source!=='voqiva_panel';});
+  const verified = own.filter(x=>buyerStats(x.person_id)).length;
   const studiesDone = rows('Study',s=>s.synthesized_at&&s.launched_at&&!isTriggerStudy(s));
-  const tat = studiesDone.length? studiesDone.reduce((a,s)=>a+(T(s.synthesized_at)-T(s.launched_at)),0)/studiesDone.length/3600000 : 3;
-  return `<div class="lp">
-  <header class="lp-nav"><div class="brand" style="padding:0"><div class="logo">V</div><b>Voqiva</b></div>
-    <nav class="row hide-sm" style="gap:22px"><button class="link" style="color:var(--fg)" data-act="lp-jump" data-k="how">How it works</button><button class="link" style="color:var(--fg)" data-act="lp-jump" data-k="pricing">Pricing</button></nav>
-    <div class="row"><button class="btn" data-act="lp-demo">Explore demo</button><button class="btn primary" data-act="lp-jump" data-k="start">Start free</button></div></header>
-  <section class="lp-hero">
-    <div class="stack" style="gap:18px;min-width:0">
-      <span class="eyebrow" style="color:var(--accent)">For Indian D2C brands</span>
-      <h1 class="lp-h1">Hear from your real buyers by tonight.</h1>
-      <p class="lp-sub">Voqiva interviews people who actually bought from you, by WhatsApp voice note, then shows what they said next to what they bought. When you ship a fix, it tells you if the numbers moved.</p>
-      <div class="row"><button class="btn primary lg" data-act="lp-jump" data-k="start">Run your first 10 interviews free</button><button class="btn lg" data-act="lp-demo">Explore the demo</button></div>
-      <span class="small muted">No agency, no retainer. Your customers opt in; you only pay their incentives.</span>
+  const tat = studiesDone.length? studiesDone.reduce((a,s)=>a+(T(s.synthesized_at)-T(s.launched_at)),0)/studiesDone.length/3600000 : 3.8;
+  const tatTxt = Math.floor(tat)+'h '+String(Math.round((tat%1)*60)).padStart(2,'0')+'m';
+  const wave = (n,on) => { let h='',sd=n*7; for(let i=0;i<34;i++){ sd=(sd*9301+49297)%233280; h+=`<i class="${i>=on?'off':''}" style="height:${5+Math.round(sd/233280*20)}px"></i>`; } return h; };
+  const plan = p => `<div class="plan ${p.hl?'hl':''}">${p.hl?'<span class="tag">Most chosen</span>':''}
+      <h3 style="font-size:20px">${p.name}</h3><p class="small muted" style="margin-top:4px">${p.sub}</p>
+      <div class="price num">${p.price}<small>${p.per}</small></div>
+      <ul>${p.feats.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>
+      <button class="btn ${p.hl?'':''}" data-act="lp-jump" data-k="start">${p.cta}</button></div>`;
+  return `<div class="lpx">
+  <header><div class="wrap">
+    <div class="brandx">${ic('wave')}Voqiva</div>
+    <nav class="navx"><button data-act="lp-jump" data-k="how">How it works</button><button data-act="lp-jump" data-k="compare">Compare</button><button data-act="lp-jump" data-k="pricing">Pricing</button><button data-act="lp-demo">Sample report</button></nav>
+    <div class="row" style="gap:20px"><button class="link hide-sm" style="color:var(--fg);font-weight:500" data-act="lp-demo">Sign in</button><button class="btn sm" style="border-color:var(--fg);height:40px" data-act="lp-jump" data-k="start">Get started</button></div>
+  </div></header>
+
+  <section class="wrap hero2">
+    <div style="min-width:0">
+      <span class="livechip"><i></i><b>Live</b> · ${done.length} buyer interviews in this workspace</span>
+      <h1 class="big">Hear from your real buyers by tonight.</h1>
+      <p class="lead">Ask a question in plain English. Voqiva interviews customers who actually bought from you over WhatsApp voice notes, pays them by UPI, and puts every answer next to their order.</p>
+      <div class="ctas"><button class="btn lg" style="border-color:var(--fg);padding:0 24px" data-act="lp-jump" data-k="start">Run your first study free</button><button class="btn ghost lg" data-act="lp-demo">See a sample report</button></div>
+      <dl><div><dt>Median first reply</dt><dd class="num">${tatTxt}</dd></div><div><dt>Answers tied to orders</dt><dd class="num">${own.length?Math.round(verified/own.length*100):100}%</dd></div><div><dt>Avg. cost per study</dt><dd class="num">₹2,000</dd></div></dl>
     </div>
-    <div class="lp-phone" aria-hidden="true">
-      <div class="small" style="font-weight:600;color:var(--accent)">UrbanKhaadi · Voqiva AI</div>
-      <div class="bubble mod">${voiceNote('You returned your kurta last week. What happened?',false)}<div class="small">You returned your kurta last week. What happened?</div></div>
-      <div class="bubble par">${voiceNote('The size chart said M but it fit like an L. I wanted to exchange, not refund.',true)}<div>The size chart said M but it fit like an L. I wanted to exchange, not refund.</div></div>
-      <span class="pill buy" style="align-self:flex-end">${ic('check')}Bought 12 Nov · ₹1,899 · returned</span>
+    <div style="position:relative;min-width:0" aria-hidden="true">
+      <div class="chat">
+        <div class="chat-h"><div class="row" style="gap:12px;min-width:0"><span class="avatar" style="width:40px;height:40px;background:var(--accent-soft);color:var(--accent);font-weight:600">SI</span><div style="min-width:0"><div style="font-weight:500">Sneha Iyer</div><div class="small muted">Pune · first-time buyer</div></div></div><span class="pill buy">${ic('check')}Bought 12 Nov · ₹1,899</span></div>
+        <div class="chat-b">
+          <span class="day">Today</span>
+          <div class="in">Hi Sneha, thanks for buying the Kumkumadi Night Serum from Rasa Botanicals. Could you share in a voice note why you haven’t reordered yet? We’ll send ₹150 to your UPI as thanks.<span class="time">6:02 pm</span></div>
+          <div class="out"><div class="row" style="gap:12px;flex-wrap:nowrap"><button class="play" tabindex="-1">${ic('play')}</button><div class="wave">${wave(3,22)}</div></div><div class="row between small muted" style="margin-top:4px"><span class="num">0:42</span><span>6:19 pm <span style="color:#53BDEB">✓✓</span></span></div></div>
+          <div class="tr">“It finished in five weeks and I just… forgot. Nobody reminded me, and full price felt steep after the first-order discount.”</div>
+          <div class="in">Thank you, that’s really helpful. ₹150 sent to sneha@okaxis<span class="time">6:20 pm</span></div>
+        </div>
+      </div>
+      <div class="themechip"><div class="row between small"><span class="eyebrow" style="letter-spacing:.06em">Theme found</span><span class="small" style="color:var(--ok);font-weight:500">● Ready</span></div><div style="font-weight:600;margin-top:8px;line-height:1.35">Serum runs out before anyone reminds them</div><div class="bar" style="margin-top:12px"><i style="width:38%"></i></div><div class="small muted" style="margin-top:8px">14 of 37 verified buyers · 38%</div></div>
     </div>
   </section>
-  <section class="lp-proof"><div><b class="num">${done.length}</b><span>conversations</span></div><div><b class="num">${done.length?Math.round(verified/done.length*100):0}%</b><span>matched to a real order</span></div><div><b class="num">${tat.toFixed(1)}h</b><span>question to insight</span></div><div><b class="num">${rows('Person',p=>!p.cohort_import_id).length}</b><span>verified panelists</span></div><span class="small faint" style="grid-column:1/-1">Numbers from the demo workspace in this prototype.</span></section>
-  <section class="lp-compare">
-    <div class="card stack"><span class="eyebrow">Research agency</span><h3>₹1.5–2 lakh · 3–4 weeks</h3><ul class="lp-list bad"><li>Respondents you can't verify. Industry studies put survey fraud at 15–45%.</li><li>A deck at the end, no link to what customers actually bought</li><li>No way to tell if the recommendation worked</li></ul></div>
-    <div class="card stack" style="border-color:var(--accent)"><span class="eyebrow" style="color:var(--accent)">Voqiva</span><h3>From ₹0 · tonight</h3><ul class="lp-list good"><li>Only people with a real order, who opted in</li><li>Every quote shows what that person bought and returned</li><li>Outcome tracking shows if the fix moved repeat rate, returns or AOV</li></ul></div>
+
+  <div class="band"><div class="wrap trust"><span style="color:var(--fg);font-weight:500">Built for Indian D2C</span><span>${ic('store')}Shopify orders</span><span>${ic('chat')}WhatsApp Business API</span><span>${ic('rupee')}UPI payouts in minutes</span><span>${ic('shield')}DPDP-ready consent</span></div></div>
+
+  <section id="lp-compare" class="wrap pad">
+    <span class="kick">Agency vs Voqiva</span>
+    <h2 class="sec">An agency sends a deck in six weeks. Voqiva brings you your buyers’ voices tonight.</h2>
+    <div class="card" style="margin-top:48px;padding:0;overflow-x:auto"><table class="cmp"><thead><tr><th style="width:28%"></th><th>Research agency</th><th style="color:var(--fg)">Voqiva</th></tr></thead><tbody>
+      ${[['Time to first insight','3–6 weeks','Same day'],['Cost','₹3,00,000–₹8,00,000 per project','₹2,000 per study'],['Who you hear from','Recruited panel, may never have bought','Your own verified buyers'],['Evidence','Summary slides','Every quote linked to an order or return'],['After the report','Engagement ends','Tracks repeat rate, returns and AOV']].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td><span class="tick">✓</span>${r[2]}</td></tr>`).join('')}
+    </tbody></table></div>
   </section>
-  <section id="lp-how" class="stack" style="gap:16px"><h2>How it works</h2><div class="grid g3">
-    <div class="card stack"><span class="lp-n">1</span><h3>Ask in plain English</h3><p class="muted small">“Why don't first-time buyers reorder?” The AI writes the screener, the questions and the budget.</p></div>
-    <div class="card stack"><span class="lp-n">2</span><h3>Your buyers answer on WhatsApp</h3><p class="muted small">Voice notes, in their own time. Paid by UPI on completion, whatever their opinion.</p></div>
-    <div class="card stack"><span class="lp-n">3</span><h3>Act, then prove it</h3><p class="muted small">Themes backed by quotes and order data. Ship a fix and Voqiva measures the result 30 days later.</p></div></div></section>
-  <section id="lp-pricing" class="stack" style="gap:16px"><h2>Pricing</h2><div class="grid g3">${PLANS.map(p=>`<div class="card stack" style="${p.k==='free'?'border-color:var(--accent)':''}"><b style="font-family:var(--display);font-size:19px">${p.name}</b><div class="num" style="font-family:var(--display);font-size:26px;font-weight:600">${p.price}</div><p class="small muted">${p.line}</p></div>`).join('')}</div></section>
-  <section id="lp-start" class="card lp-final">
-    <div class="stack" style="gap:8px;min-width:0"><h2>Run your first 10 interviews free</h2><p class="muted">Create your workspace. It comes with sample studies so you can explore before connecting your store.</p></div>
-    <form class="stack" data-submit="signup" style="gap:10px;min-width:0">
-      <div><label class="lbl" for="su-name">Your name</label><input class="field" id="su-name" required autocomplete="name" placeholder="e.g. Tanu Dewani"></div>
-      <div><label class="lbl" for="su-brand">Brand name</label><input class="field" id="su-brand" required placeholder="e.g. AURELLE"></div>
-      <div><label class="lbl" for="su-email">Work email</label><input class="field" id="su-email" type="email" required autocomplete="email" placeholder="you@brand.in"></div>
-      <button class="btn primary lg" type="submit">Create my workspace ${ic('right')}</button>
-      <span class="small faint">Prototype: nothing is sent anywhere. Your details stay in this browser.</span>
+
+  <section id="lp-how" class="band"><div class="wrap pad">
+    <span class="kick">How it works</span>
+    <h2 class="sec">From question to fix in three steps</h2>
+    <p class="lead" style="margin-top:16px">No surveys to write, no panels to recruit. You bring the question; your customers bring the answers.</p>
+    <div class="steps">
+      <div class="step"><span class="n">01</span><h3>Ask in plain English</h3><p class="muted">“Why aren’t first-time buyers reordering?” Voqiva drafts the interview and picks the right buyers from your orders.</p><div class="mini">${ic('search')}Why aren’t first-time buyers reordering?</div></div>
+      <div class="step"><span class="n">02</span><h3>Buyers reply on WhatsApp</h3><p class="muted">Customers answer in voice notes, in their own time, and get paid by UPI the moment they finish.</p><div class="mini" style="background:var(--wa-out);border-color:transparent"><button class="play" tabindex="-1" style="width:28px;height:28px">${ic('play')}</button><div class="wave" style="height:20px">${wave(5,18).replace(/height:(\d+)px/g,(m,h)=>'height:'+Math.round(h*0.7)+'px')}</div><span class="num small">0:38</span></div></div>
+      <div class="step"><span class="n">03</span><h3>Get themes, fixes and results</h3><p class="muted">Answers are grouped into evidence-backed themes, turned into fixes, then tracked against repeat rate, returns and order value.</p><div class="mini between"><span>Repeat rate</span><span class="num"><s class="faint">18.0%</s> <b style="color:var(--ok)">24.5%</b></span></div></div>
+    </div>
+  </div></section>
+
+  <section id="lp-pricing" class="wrap pad">
+    <span class="kick">Pricing</span>
+    <h2 class="sec">Pay per study, or go unlimited</h2>
+    <p class="lead" style="margin-top:16px">Customer incentives are paid at cost via UPI. No setup fees, cancel anytime.</p>
+    <div class="plans">${PLANS.map(plan).join('')}</div>
+  </section>
+
+  <section id="lp-start" class="band"><div class="wrap pad su">
+    <div style="min-width:0">
+      <h2 class="sec" style="margin-top:0">Ask your first question today. Read the answers tonight.</h2>
+      <p class="lead">Connect your store and WhatsApp Business in under 10 minutes. Your first study with 5 interviews is free.</p>
+      <figure style="margin:40px 0 0;border-left:2px solid var(--line);padding-left:20px">
+        <blockquote style="margin:0;font-family:var(--display);font-size:20px;line-height:1.45">“We thought price was the problem. Thirty buyers told us it was the reminder. Repeat rate went up 6.5 points in a month.”</blockquote>
+        <figcaption class="row" style="gap:12px;margin-top:16px"><span class="avatar" style="width:40px;height:40px">AM</span><div><div style="font-weight:500">Aarav Mehta</div><div class="small muted">Founder, Rasa Botanicals · sample testimonial</div></div></figcaption>
+      </figure>
+    </div>
+    <form class="box" data-submit="signup">
+      <div><label class="lb" for="su-email">Work email</label><input class="field" id="su-email" type="email" required autocomplete="email" placeholder="you@brand.in"></div>
+      <div><label class="lb" for="su-brand">Brand name</label><input class="field" id="su-brand" required placeholder="e.g. Rasa Botanicals"></div>
+      <div><label class="lb" for="su-name">Your name</label><input class="field" id="su-name" required autocomplete="name" placeholder="e.g. Tanu Dewani"></div>
+      <div><label class="lb" for="su-orders">Monthly orders</label><select class="field" id="su-orders"><option>Under 1,000</option><option selected>1,000–10,000</option><option>10,000–50,000</option><option>50,000+</option></select></div>
+      <div class="full"><label class="lb" for="su-store">Store URL</label><div class="pre"><span>https://</span><input id="su-store" placeholder="yourbrand.in" autocomplete="url"></div></div>
+      <div class="full"><label class="lb" for="su-wa">WhatsApp number</label><div class="pre"><span>+91</span><input id="su-wa" inputmode="tel" placeholder="98765 43210" autocomplete="tel-national"></div></div>
+      <label class="full row" style="gap:12px;align-items:flex-start;font-size:14px;color:var(--muted);flex-wrap:nowrap"><input type="checkbox" id="su-dpdp" required style="width:18px;height:18px;margin-top:2px;accent-color:var(--accent);flex:none">I confirm customers will be contacted only with consent, per Voqiva’s DPDP policy.</label>
+      <div class="full"><button class="btn primary lg" type="submit" style="width:100%">Create free account</button><p class="small muted" style="text-align:center;margin-top:12px">No card needed · First study free · Prototype: nothing leaves this browser</p></div>
     </form>
-  </section>
-  <footer class="small muted" style="padding:28px 0 12px">Voqiva · prototype · <button class="link small" data-act="lp-demo">Open the demo workspace</button></footer>
+  </div></section>
+
+  <footer><div class="wrap row between" style="flex-wrap:wrap;gap:16px"><div class="brandx" style="font-size:18px">${ic('wave')}Voqiva</div><div class="row" style="gap:24px"><button class="link small" style="color:var(--muted)" data-act="lp-demo">Open the demo workspace</button><span>Privacy</span><span>DPDP consent</span><span>Terms</span></div><span>© ${new Date().getFullYear()} Voqiva · prototype</span></div></footer>
   </div>`;
 }
 // ---------- actions ----------
@@ -3180,7 +3376,8 @@ Object.assign(SUBMIT, {
     const name=document.getElementById('su-name').value.trim(), brand=document.getElementById('su-brand').value.trim(), email=document.getElementById('su-email').value.trim();
     if(!name||!brand) return;
     upd('User',ui.user,{full_name:name,email:email||me().email}); upd('Workspace',ui.ws,{name:brand});
-    Object.assign(meta(),{onboarded:true,signup_at:iso(Date.now()),checklist_dismissed:false,optin_done:false,acted:false});
+    const v=id=>{const e=document.getElementById(id);return e?e.value.trim():'';};
+    Object.assign(meta(),{store_url:v('su-store'),monthly_orders:v('su-orders'),whatsapp:v('su-wa'),dpdp_ack:true,onboarded:true,signup_at:iso(Date.now()),checklist_dismissed:false,optin_done:false,acted:false});
     save(); go('home'); toast('Welcome to Voqiva, '+name.split(' ')[0]+'. Your workspace is ready.');
   }
 });

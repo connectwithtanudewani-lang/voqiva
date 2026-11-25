@@ -80,7 +80,7 @@ function renderRail(){
   const on = list => list.includes(v)?'on':'';
   const act = rows('Trigger',t=>t.workspace_id===ui.ws&&t.active).length;
   document.getElementById('rail').innerHTML = `
-    <a class="brand" href="#home" style="text-decoration:none;color:inherit"><div class="logo">V</div><b>Voqiva</b></a>
+    <a class="brand" href="#home" style="text-decoration:none;color:inherit"><div class="logo">${ic('wave')}</div><b>Voqiva</b></a>
     <a class="nav ${on(['home'])}" href="#home">${ic('home')}Home</a>
     <span class="nav-group">Research</span>
     <a class="nav ${on(['studies','new','plan','live','report','actions'])}" href="#studies">${ic('folder')}Studies ${live?`<span class="count">${live} live</span>`:''}</a>
@@ -180,48 +180,96 @@ function mobileCTA(label, href){ return `<div class="mcta"><a class="btn primary
 // ---------- landing page ----------
 function vWelcome(){
   const done = rows('Session',x=>x.ended_at);
-  const verified = done.filter(x=>buyerStats(x.person_id)).length;
+  const own = done.filter(x=>{const st=byId('Study',x.study_id);return st&&st.audience_source!=='voqiva_panel';});
+  const verified = own.filter(x=>buyerStats(x.person_id)).length;
   const studiesDone = rows('Study',s=>s.synthesized_at&&s.launched_at&&!isTriggerStudy(s));
-  const tat = studiesDone.length? studiesDone.reduce((a,s)=>a+(T(s.synthesized_at)-T(s.launched_at)),0)/studiesDone.length/3600000 : 3;
-  return `<div class="lp">
-  <header class="lp-nav"><div class="brand" style="padding:0"><div class="logo">V</div><b>Voqiva</b></div>
-    <nav class="row hide-sm" style="gap:22px"><button class="link" style="color:var(--fg)" data-act="lp-jump" data-k="how">How it works</button><button class="link" style="color:var(--fg)" data-act="lp-jump" data-k="pricing">Pricing</button></nav>
-    <div class="row"><button class="btn" data-act="lp-demo">Explore demo</button><button class="btn primary" data-act="lp-jump" data-k="start">Start free</button></div></header>
-  <section class="lp-hero">
-    <div class="stack" style="gap:18px;min-width:0">
-      <span class="eyebrow" style="color:var(--accent)">For Indian D2C brands</span>
-      <h1 class="lp-h1">Hear from your real buyers by tonight.</h1>
-      <p class="lp-sub">Voqiva interviews people who actually bought from you, by WhatsApp voice note, then shows what they said next to what they bought. When you ship a fix, it tells you if the numbers moved.</p>
-      <div class="row"><button class="btn primary lg" data-act="lp-jump" data-k="start">Run your first 10 interviews free</button><button class="btn lg" data-act="lp-demo">Explore the demo</button></div>
-      <span class="small muted">No agency, no retainer. Your customers opt in; you only pay their incentives.</span>
+  const tat = studiesDone.length? studiesDone.reduce((a,s)=>a+(T(s.synthesized_at)-T(s.launched_at)),0)/studiesDone.length/3600000 : 3.8;
+  const tatTxt = Math.floor(tat)+'h '+String(Math.round((tat%1)*60)).padStart(2,'0')+'m';
+  const wave = (n,on) => { let h='',sd=n*7; for(let i=0;i<34;i++){ sd=(sd*9301+49297)%233280; h+=`<i class="${i>=on?'off':''}" style="height:${5+Math.round(sd/233280*20)}px"></i>`; } return h; };
+  const plan = p => `<div class="plan ${p.hl?'hl':''}">${p.hl?'<span class="tag">Most chosen</span>':''}
+      <h3 style="font-size:20px">${p.name}</h3><p class="small muted" style="margin-top:4px">${p.sub}</p>
+      <div class="price num">${p.price}<small>${p.per}</small></div>
+      <ul>${p.feats.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>
+      <button class="btn ${p.hl?'':''}" data-act="lp-jump" data-k="start">${p.cta}</button></div>`;
+  return `<div class="lpx">
+  <header><div class="wrap">
+    <div class="brandx">${ic('wave')}Voqiva</div>
+    <nav class="navx"><button data-act="lp-jump" data-k="how">How it works</button><button data-act="lp-jump" data-k="compare">Compare</button><button data-act="lp-jump" data-k="pricing">Pricing</button><button data-act="lp-demo">Sample report</button></nav>
+    <div class="row" style="gap:20px"><button class="link hide-sm" style="color:var(--fg);font-weight:500" data-act="lp-demo">Sign in</button><button class="btn sm" style="border-color:var(--fg);height:40px" data-act="lp-jump" data-k="start">Get started</button></div>
+  </div></header>
+
+  <section class="wrap hero2">
+    <div style="min-width:0">
+      <span class="livechip"><i></i><b>Live</b> · ${done.length} buyer interviews in this workspace</span>
+      <h1 class="big">Hear from your real buyers by tonight.</h1>
+      <p class="lead">Ask a question in plain English. Voqiva interviews customers who actually bought from you over WhatsApp voice notes, pays them by UPI, and puts every answer next to their order.</p>
+      <div class="ctas"><button class="btn lg" style="border-color:var(--fg);padding:0 24px" data-act="lp-jump" data-k="start">Run your first study free</button><button class="btn ghost lg" data-act="lp-demo">See a sample report</button></div>
+      <dl><div><dt>Median first reply</dt><dd class="num">${tatTxt}</dd></div><div><dt>Answers tied to orders</dt><dd class="num">${own.length?Math.round(verified/own.length*100):100}%</dd></div><div><dt>Avg. cost per study</dt><dd class="num">₹2,000</dd></div></dl>
     </div>
-    <div class="lp-phone" aria-hidden="true">
-      <div class="small" style="font-weight:600;color:var(--accent)">UrbanKhaadi · Voqiva AI</div>
-      <div class="bubble mod">${voiceNote('You returned your kurta last week. What happened?',false)}<div class="small">You returned your kurta last week. What happened?</div></div>
-      <div class="bubble par">${voiceNote('The size chart said M but it fit like an L. I wanted to exchange, not refund.',true)}<div>The size chart said M but it fit like an L. I wanted to exchange, not refund.</div></div>
-      <span class="pill buy" style="align-self:flex-end">${ic('check')}Bought 12 Nov · ₹1,899 · returned</span>
+    <div style="position:relative;min-width:0" aria-hidden="true">
+      <div class="chat">
+        <div class="chat-h"><div class="row" style="gap:12px;min-width:0"><span class="avatar" style="width:40px;height:40px;background:var(--accent-soft);color:var(--accent);font-weight:600">SI</span><div style="min-width:0"><div style="font-weight:500">Sneha Iyer</div><div class="small muted">Pune · first-time buyer</div></div></div><span class="pill buy">${ic('check')}Bought 12 Nov · ₹1,899</span></div>
+        <div class="chat-b">
+          <span class="day">Today</span>
+          <div class="in">Hi Sneha, thanks for buying the Kumkumadi Night Serum from Rasa Botanicals. Could you share in a voice note why you haven’t reordered yet? We’ll send ₹150 to your UPI as thanks.<span class="time">6:02 pm</span></div>
+          <div class="out"><div class="row" style="gap:12px;flex-wrap:nowrap"><button class="play" tabindex="-1">${ic('play')}</button><div class="wave">${wave(3,22)}</div></div><div class="row between small muted" style="margin-top:4px"><span class="num">0:42</span><span>6:19 pm <span style="color:#53BDEB">✓✓</span></span></div></div>
+          <div class="tr">“It finished in five weeks and I just… forgot. Nobody reminded me, and full price felt steep after the first-order discount.”</div>
+          <div class="in">Thank you, that’s really helpful. ₹150 sent to sneha@okaxis<span class="time">6:20 pm</span></div>
+        </div>
+      </div>
+      <div class="themechip"><div class="row between small"><span class="eyebrow" style="letter-spacing:.06em">Theme found</span><span class="small" style="color:var(--ok);font-weight:500">● Ready</span></div><div style="font-weight:600;margin-top:8px;line-height:1.35">Serum runs out before anyone reminds them</div><div class="bar" style="margin-top:12px"><i style="width:38%"></i></div><div class="small muted" style="margin-top:8px">14 of 37 verified buyers · 38%</div></div>
     </div>
   </section>
-  <section class="lp-proof"><div><b class="num">${done.length}</b><span>conversations</span></div><div><b class="num">${done.length?Math.round(verified/done.length*100):0}%</b><span>matched to a real order</span></div><div><b class="num">${tat.toFixed(1)}h</b><span>question to insight</span></div><div><b class="num">${rows('Person',p=>!p.cohort_import_id).length}</b><span>verified panelists</span></div><span class="small faint" style="grid-column:1/-1">Numbers from the demo workspace in this prototype.</span></section>
-  <section class="lp-compare">
-    <div class="card stack"><span class="eyebrow">Research agency</span><h3>₹1.5–2 lakh · 3–4 weeks</h3><ul class="lp-list bad"><li>Respondents you can't verify. Industry studies put survey fraud at 15–45%.</li><li>A deck at the end, no link to what customers actually bought</li><li>No way to tell if the recommendation worked</li></ul></div>
-    <div class="card stack" style="border-color:var(--accent)"><span class="eyebrow" style="color:var(--accent)">Voqiva</span><h3>From ₹0 · tonight</h3><ul class="lp-list good"><li>Only people with a real order, who opted in</li><li>Every quote shows what that person bought and returned</li><li>Outcome tracking shows if the fix moved repeat rate, returns or AOV</li></ul></div>
+
+  <div class="band"><div class="wrap trust"><span style="color:var(--fg);font-weight:500">Built for Indian D2C</span><span>${ic('store')}Shopify orders</span><span>${ic('chat')}WhatsApp Business API</span><span>${ic('rupee')}UPI payouts in minutes</span><span>${ic('shield')}DPDP-ready consent</span></div></div>
+
+  <section id="lp-compare" class="wrap pad">
+    <span class="kick">Agency vs Voqiva</span>
+    <h2 class="sec">An agency sends a deck in six weeks. Voqiva brings you your buyers’ voices tonight.</h2>
+    <div class="card" style="margin-top:48px;padding:0;overflow-x:auto"><table class="cmp"><thead><tr><th style="width:28%"></th><th>Research agency</th><th style="color:var(--fg)">Voqiva</th></tr></thead><tbody>
+      ${[['Time to first insight','3–6 weeks','Same day'],['Cost','₹3,00,000–₹8,00,000 per project','₹2,000 per study'],['Who you hear from','Recruited panel, may never have bought','Your own verified buyers'],['Evidence','Summary slides','Every quote linked to an order or return'],['After the report','Engagement ends','Tracks repeat rate, returns and AOV']].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td><span class="tick">✓</span>${r[2]}</td></tr>`).join('')}
+    </tbody></table></div>
   </section>
-  <section id="lp-how" class="stack" style="gap:16px"><h2>How it works</h2><div class="grid g3">
-    <div class="card stack"><span class="lp-n">1</span><h3>Ask in plain English</h3><p class="muted small">“Why don't first-time buyers reorder?” The AI writes the screener, the questions and the budget.</p></div>
-    <div class="card stack"><span class="lp-n">2</span><h3>Your buyers answer on WhatsApp</h3><p class="muted small">Voice notes, in their own time. Paid by UPI on completion, whatever their opinion.</p></div>
-    <div class="card stack"><span class="lp-n">3</span><h3>Act, then prove it</h3><p class="muted small">Themes backed by quotes and order data. Ship a fix and Voqiva measures the result 30 days later.</p></div></div></section>
-  <section id="lp-pricing" class="stack" style="gap:16px"><h2>Pricing</h2><div class="grid g3">${PLANS.map(p=>`<div class="card stack" style="${p.k==='free'?'border-color:var(--accent)':''}"><b style="font-family:var(--display);font-size:19px">${p.name}</b><div class="num" style="font-family:var(--display);font-size:26px;font-weight:600">${p.price}</div><p class="small muted">${p.line}</p></div>`).join('')}</div></section>
-  <section id="lp-start" class="card lp-final">
-    <div class="stack" style="gap:8px;min-width:0"><h2>Run your first 10 interviews free</h2><p class="muted">Create your workspace. It comes with sample studies so you can explore before connecting your store.</p></div>
-    <form class="stack" data-submit="signup" style="gap:10px;min-width:0">
-      <div><label class="lbl" for="su-name">Your name</label><input class="field" id="su-name" required autocomplete="name" placeholder="e.g. Tanu Dewani"></div>
-      <div><label class="lbl" for="su-brand">Brand name</label><input class="field" id="su-brand" required placeholder="e.g. AURELLE"></div>
-      <div><label class="lbl" for="su-email">Work email</label><input class="field" id="su-email" type="email" required autocomplete="email" placeholder="you@brand.in"></div>
-      <button class="btn primary lg" type="submit">Create my workspace ${ic('right')}</button>
-      <span class="small faint">Prototype: nothing is sent anywhere. Your details stay in this browser.</span>
+
+  <section id="lp-how" class="band"><div class="wrap pad">
+    <span class="kick">How it works</span>
+    <h2 class="sec">From question to fix in three steps</h2>
+    <p class="lead" style="margin-top:16px">No surveys to write, no panels to recruit. You bring the question; your customers bring the answers.</p>
+    <div class="steps">
+      <div class="step"><span class="n">01</span><h3>Ask in plain English</h3><p class="muted">“Why aren’t first-time buyers reordering?” Voqiva drafts the interview and picks the right buyers from your orders.</p><div class="mini">${ic('search')}Why aren’t first-time buyers reordering?</div></div>
+      <div class="step"><span class="n">02</span><h3>Buyers reply on WhatsApp</h3><p class="muted">Customers answer in voice notes, in their own time, and get paid by UPI the moment they finish.</p><div class="mini" style="background:var(--wa-out);border-color:transparent"><button class="play" tabindex="-1" style="width:28px;height:28px">${ic('play')}</button><div class="wave" style="height:20px">${wave(5,18).replace(/height:(\d+)px/g,(m,h)=>'height:'+Math.round(h*0.7)+'px')}</div><span class="num small">0:38</span></div></div>
+      <div class="step"><span class="n">03</span><h3>Get themes, fixes and results</h3><p class="muted">Answers are grouped into evidence-backed themes, turned into fixes, then tracked against repeat rate, returns and order value.</p><div class="mini between"><span>Repeat rate</span><span class="num"><s class="faint">18.0%</s> <b style="color:var(--ok)">24.5%</b></span></div></div>
+    </div>
+  </div></section>
+
+  <section id="lp-pricing" class="wrap pad">
+    <span class="kick">Pricing</span>
+    <h2 class="sec">Pay per study, or go unlimited</h2>
+    <p class="lead" style="margin-top:16px">Customer incentives are paid at cost via UPI. No setup fees, cancel anytime.</p>
+    <div class="plans">${PLANS.map(plan).join('')}</div>
+  </section>
+
+  <section id="lp-start" class="band"><div class="wrap pad su">
+    <div style="min-width:0">
+      <h2 class="sec" style="margin-top:0">Ask your first question today. Read the answers tonight.</h2>
+      <p class="lead">Connect your store and WhatsApp Business in under 10 minutes. Your first study with 5 interviews is free.</p>
+      <figure style="margin:40px 0 0;border-left:2px solid var(--line);padding-left:20px">
+        <blockquote style="margin:0;font-family:var(--display);font-size:20px;line-height:1.45">“We thought price was the problem. Thirty buyers told us it was the reminder. Repeat rate went up 6.5 points in a month.”</blockquote>
+        <figcaption class="row" style="gap:12px;margin-top:16px"><span class="avatar" style="width:40px;height:40px">AM</span><div><div style="font-weight:500">Aarav Mehta</div><div class="small muted">Founder, Rasa Botanicals · sample testimonial</div></div></figcaption>
+      </figure>
+    </div>
+    <form class="box" data-submit="signup">
+      <div><label class="lb" for="su-email">Work email</label><input class="field" id="su-email" type="email" required autocomplete="email" placeholder="you@brand.in"></div>
+      <div><label class="lb" for="su-brand">Brand name</label><input class="field" id="su-brand" required placeholder="e.g. Rasa Botanicals"></div>
+      <div><label class="lb" for="su-name">Your name</label><input class="field" id="su-name" required autocomplete="name" placeholder="e.g. Tanu Dewani"></div>
+      <div><label class="lb" for="su-orders">Monthly orders</label><select class="field" id="su-orders"><option>Under 1,000</option><option selected>1,000–10,000</option><option>10,000–50,000</option><option>50,000+</option></select></div>
+      <div class="full"><label class="lb" for="su-store">Store URL</label><div class="pre"><span>https://</span><input id="su-store" placeholder="yourbrand.in" autocomplete="url"></div></div>
+      <div class="full"><label class="lb" for="su-wa">WhatsApp number</label><div class="pre"><span>+91</span><input id="su-wa" inputmode="tel" placeholder="98765 43210" autocomplete="tel-national"></div></div>
+      <label class="full row" style="gap:12px;align-items:flex-start;font-size:14px;color:var(--muted);flex-wrap:nowrap"><input type="checkbox" id="su-dpdp" required style="width:18px;height:18px;margin-top:2px;accent-color:var(--accent);flex:none">I confirm customers will be contacted only with consent, per Voqiva’s DPDP policy.</label>
+      <div class="full"><button class="btn primary lg" type="submit" style="width:100%">Create free account</button><p class="small muted" style="text-align:center;margin-top:12px">No card needed · First study free · Prototype: nothing leaves this browser</p></div>
     </form>
-  </section>
-  <footer class="small muted" style="padding:28px 0 12px">Voqiva · prototype · <button class="link small" data-act="lp-demo">Open the demo workspace</button></footer>
+  </div></section>
+
+  <footer><div class="wrap row between" style="flex-wrap:wrap;gap:16px"><div class="brandx" style="font-size:18px">${ic('wave')}Voqiva</div><div class="row" style="gap:24px"><button class="link small" style="color:var(--muted)" data-act="lp-demo">Open the demo workspace</button><span>Privacy</span><span>DPDP consent</span><span>Terms</span></div><span>© ${new Date().getFullYear()} Voqiva · prototype</span></div></footer>
   </div>`;
 }
