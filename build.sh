@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
   echo '<style>:root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>'
   cat src/01-head.html
   echo '</head><body><script>'
-  cat src/02-scripts.js src/03-engine.js src/04-ai.js src/05-views.js src/07-v2.js src/09-panel.js src/06-actions.js src/08-v2-actions.js src/10-panel-actions.js
+  cat src/02-scripts.js src/03-engine.js src/04-ai.js src/05-views.js src/07-v2.js src/09-panel.js src/11-ux.js src/06-actions.js src/08-v2-actions.js src/10-panel-actions.js src/12-ux-actions.js
   echo '</script></body></html>'
 } > index.html
 echo "Built index.html ($(wc -c < index.html) bytes)"

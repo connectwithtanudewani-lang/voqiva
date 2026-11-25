@@ -1,0 +1,227 @@
+// =====================================================================
+// v4 — UX pass: landing + sign-up, first-run checklist, study stepper,
+// skeletons, insights reveal, unfinished-task cues, grouped nav, trust levers
+// =====================================================================
+VIEWS.push('welcome');
+const meta = () => (DB._meta = DB._meta || {scripts:{}});
+
+// ---------- study stepper (goal-gradient) ----------
+function studyStepper(s, cur){
+  const steps = [['ask','Ask'],['review','Review'],['live','Live'],['insights','Insights'],['act','Act']];
+  const st = s ? studyStatus(s) : 'new';
+  const reached = !s ? 0 : st==='draft' ? 1 : s.synthesized_at ? 4 : 2;
+  const href = { review: s&&st==='draft'?'#plan-'+s.id:null, live: s&&s.launched_at?'#live-'+s.id:null, insights: s&&s.synthesized_at?'#report-'+s.id:null, act: s&&s.synthesized_at?'#actions-'+s.id:null };
+  const curI = steps.findIndex(x=>x[0]===cur);
+  return `<nav class="stepper-nav" aria-label="Study progress"><span class="small muted">Step ${curI+1} of 5</span><ol>${steps.map(([k,l],i)=>{
+    const state = i===curI?'cur':i<=reached?'done':'todo';
+    const inner = `<span class="sn">${state==='done'&&i!==curI?ic('check'):i+1}</span>${l}`;
+    return `<li class="${state}">${href[k]&&i!==curI?`<a href="${href[k]}">${inner}</a>`:`<span>${inner}</span>`}</li>`; }).join('')}</ol></nav>`;
+}
+
+// ---------- skeletons (Doherty threshold) ----------
+function skeletonPlan(msg){
+  return `<section class="card stack" aria-busy="true"><div class="row between"><h3>Drafting your plan</h3><span class="pill acc"><span class="dot pulse"></span>AI writing</span></div>
+    <span class="small muted" id="nd-skel-msg">${esc(msg||'Reading your question…')}</span>
+    <div class="grid g2" style="gap:10px">${[1,2,3,4].map(()=>'<div class="well"><div class="skel" style="width:50%"></div><div class="skel" style="width:80%;height:16px;margin-top:8px"></div></div>').join('')}</div>
+    ${[90,75,85,60,70].map(w=>`<div class="skel-row"><div class="skel" style="width:28px;height:22px"></div><div class="skel" style="width:${w}%"></div></div>`).join('')}</section>`;
+}
+function skeletonThemes(){
+  return `<div class="grid g2">${[1,2,3,4].map(()=>`<div class="card stack"><div class="skel" style="width:40%"></div><div class="skel" style="width:90%;height:20px"></div><div class="skel" style="width:75%"></div><div class="skel" style="width:100%;height:56px"></div></div>`).join('')}</div>`;
+}
+
+// ---------- anchoring ----------
+function agencyAnchor(n){
+  const lo = Math.max(60000, n*5000), hi = Math.max(100000, n*8000);
+  const f = v => v>=100000 ? '₹'+(Math.round(v/10000)/10).toString().replace(/\.0$/,'')+' lakh' : inr(v);
+  return `<div class="anchor"><div class="row between"><span class="small">Typical agency quote for ${n} in-depth interviews</span><s class="num">${f(lo)}–${f(hi)}</s></div><div class="row between small muted"><span>Agency turnaround</span><s>3–4 weeks</s></div><span class="small faint">Estimate for comparison, not a quote.</span></div>`;
+}
+
+// ---------- first-run checklist (endowed progress) ----------
+function checklistSteps(){
+  const m = meta(); const since = m.signup_at ? T(m.signup_at) : 0;
+  const mine = wsStudies().filter(s=>s.launched_at && T(s.launched_at)>=since && since);
+  return [
+    {k:'account',label:'Create your account',done:true},
+    {k:'store',label:'Connect your Shopify store',done:rows('CohortImport',c=>c.workspace_id===ui.ws&&c.source==='shopify').length>0,cta:['Connect','#participants']},
+    {k:'optin',label:'Add the customer-circle opt-in to checkout',done:!!m.optin_done,cta:['Get the opt-in','#participants']},
+    {k:'study',label:'Launch your first study',done:mine.length>0,cta:['Start a study','#new']},
+    {k:'act',label:'Act on an insight',done:!!m.acted,cta:['See insights','#studies']}
+  ];
+}
+function checklistCard(){
+  const m = meta(); if(m.checklist_dismissed) return '';
+  const st = checklistSteps(); const done = st.filter(x=>x.done).length;
+  if(done===st.length) return '';
+  const next = st.find(x=>!x.done);
+  return `<section class="card checklist stack">
+    <div class="row between"><div><h3>Get your first real-customer insight</h3><span class="small muted">${done} of ${st.length} done · about 10 minutes left</span></div><button class="btn sm ghost" data-act="checklist-hide">Hide</button></div>
+    <div class="bar ok"><i style="width:${done/st.length*100}%"></i></div>
+    <ol class="cl">${st.map(x=>`<li class="${x.done?'done':x===next?'next':''}"><span class="sn">${x.done?ic('check'):''}</span><span class="lbl2">${esc(x.label)}</span>${!x.done&&x.cta?`<a class="btn sm ${x===next?'accent':''}" href="${x.cta[1]}">${esc(x.cta[0])}</a>`:''}</li>`).join('')}</ol>
+  </section>`;
+}
+
+// ---------- unfinished work (Zeigarnik) ----------
+function continueCard(){
+  const all = wsStudies(); const items=[];
+  all.filter(s=>studyStatus(s)==='draft'&&!isTriggerStudy(s)).slice(0,2).forEach(s=>items.push({t:`“${s.title}” is one step from launch`,d:`Plan and budget ready · ${inr(studyBudget(s).total)}`,h:'#plan-'+s.id,b:'Review & launch'}));
+  all.filter(s=>studyStatus(s)==='live').forEach(s=>{ const d=completedOf(s.id).length; if(d&&!s.synthesized_at) items.push({t:`${d} interviews ready to synthesise`,d:esc(s.title),h:'#live-'+s.id,b:'Open'}); });
+  const recs = rows('Recommendation',r=>all.some(s=>s.id===r.study_id)&&r.workstream!=='research');
+  const waiting = recs.filter(r=>r.status==='proposed'); const shipped = recs.filter(r=>r.status==='done');
+  if(waiting.length){ const s=byId('Study',waiting[0].study_id); items.push({t:`${waiting.length} fixes waiting for a decision`,d:`${shipped.length} of ${recs.length} shipped so far`,h:'#actions-'+s.id,b:'Decide'}); }
+  const pend = rows('Outcome',o=>o.current_value==null&&recs.some(r=>r.id===o.recommendation_id));
+  if(pend.length){ const r=byId('Recommendation',pend[0].recommendation_id); items.push({t:`${pend.length} outcome${pend.length>1?'s':''} waiting to be measured`,d:esc(r.title),h:'#actions-'+r.study_id,b:'Measure'}); }
+  if(!items.length) return '';
+  return `<section class="stack" style="gap:10px"><h2>Pick up where you left off</h2><div class="grid g2">${items.slice(0,4).map(x=>`<a class="card row between card-link" href="${x.h}"><div style="min-width:0"><b>${x.t}</b><div class="small muted">${x.d}</div></div><span class="btn sm">${x.b} ${ic('right')}</span></a>`).join('')}</div></section>`;
+}
+
+// ---------- grouped navigation (chunking) ----------
+function renderRail(){
+  const v = ui.route.view; const live = wsStudies().filter(s=>studyStatus(s)==='live').length;
+  const on = list => list.includes(v)?'on':'';
+  const act = rows('Trigger',t=>t.workspace_id===ui.ws&&t.active).length;
+  document.getElementById('rail').innerHTML = `
+    <a class="brand" href="#home" style="text-decoration:none;color:inherit"><div class="logo">V</div><b>Voqiva</b></a>
+    <a class="nav ${on(['home'])}" href="#home">${ic('home')}Home</a>
+    <span class="nav-group">Research</span>
+    <a class="nav ${on(['studies','new','plan','live','report','actions'])}" href="#studies">${ic('folder')}Studies ${live?`<span class="count">${live} live</span>`:''}</a>
+    <a class="nav ${on(['always'])}" href="#always">${ic('bolt')}Always-on ${act?`<span class="count">${act}</span>`:''}</a>
+    <span class="nav-group">People</span>
+    <a class="nav ${on(['participants'])}" href="#participants">${ic('users')}Customer circle <span class="count num">${circle(ui.ws).length}</span></a>
+    <a class="nav ${on(['panel'])}" href="#panel">${ic('shield')}Voqiva panel <span class="count num">${rows('Person',p=>!p.cohort_import_id).length}</span></a>
+    <span class="nav-group">Billing</span>
+    <a class="nav ${on(['wallet'])}" href="#wallet">${ic('wallet')}Wallet &amp; plans <span class="count num">${inr(walletBalance(ui.ws))}</span></a>
+    <div class="spacer"></div>
+    <a class="nav ${on(['account'])}" href="#account">${ic('gear')}Settings</a>
+    <a class="nav ${on(['help'])}" href="#help">${ic('help')}Help</a>`;
+}
+
+// ---------- Home ----------
+function vHome(){
+  const all = wsStudies(); const live = all.filter(s=>studyStatus(s)==='live');
+  const imported = rows('Person',p=>p.cohort_import_id && rows('CohortImport',c=>c.id===p.cohort_import_id&&c.workspace_id===ui.ws).length);
+  const circ = circle(ui.ws).length;
+  const done = rows('Session',x=>x.ended_at&&all.some(s=>s.id===x.study_id));
+  const verified = done.filter(x=>buyerStats(x.person_id)).length;
+  const outs = rows('Outcome',o=>rows('Recommendation',r=>r.id===o.recommendation_id&&all.some(s=>s.id===r.study_id)).length);
+  const worked = outs.filter(o=>(outcomeVerdict(o)||{}).k==='ok').length;
+  const trig = rows('Trigger',t=>t.workspace_id===ui.ws&&t.active);
+  return `
+  <section class="stack" style="gap:4px"><h1>Namaste ${esc(me().full_name.split(' ')[0])}</h1>
+    <p class="muted">${live.length} live ${live.length===1?'study':'studies'} · ${done.length} conversations so far · ${verified} matched to a real order.</p></section>
+  ${checklistCard()}
+  <section class="card hero stack" style="gap:14px;padding:28px">
+    <h2 style="font-size:clamp(22px,2.6vw,30px)">What do you want to learn from your buyers?</h2>
+    <form class="prompt-box" data-submit="home-ask">${ic('spark')}
+      <input id="home-q" placeholder="e.g. Why are first-time buyers of our linen shirts not reordering within 60 days?" aria-label="Your research question">
+      <button class="btn primary" type="submit">Start study ${ic('right')}</button></form>
+    <div class="row" style="gap:8px"><span class="small muted">Try:</span>${rows('PromptTemplate',t=>t.placement==='home_suggestion').map(t=>`<button class="chip plain" data-act="try" data-id="${t.id}">${esc(t.label)}</button>`).join('')}</div>
+    <span class="small muted">${freeLeft(ui.ws)} of ${FREE_QUOTA} free customer interviews left this month.</span>
+  </section>
+  ${continueCard()}
+  <section class="grid g4">
+    <a class="card kpi stack card-link" href="#participants"><span class="eyebrow">Customer circle</span><div class="big num">${circ}</div><span class="small muted">${imported.length?pct(circ/imported.length*100):'0%'} of ${imported.length} buyers opted in</span></a>
+    <a class="card kpi stack card-link" href="#studies"><span class="eyebrow">Purchase-verified voices</span><div class="big num">${verified}</div><span class="small muted">of ${done.length} conversations</span></a>
+    <a class="card kpi stack card-link" href="#studies"><span class="eyebrow">Proven fixes</span><div class="big num">${worked}<small>of ${outs.length} tracked</small></div><span class="small muted">moved a store metric</span></a>
+    <a class="card kpi stack card-link" href="#always"><span class="eyebrow">Always-on</span><div class="big num">${trig.length}</div><span class="small muted">${trig.reduce((a,t)=>a+eligibleFor(t).length,0)} customers waiting to be heard</span></a>
+  </section>
+  ${studiesSection(true)}`;
+}
+function studyCard(s){
+  const st = studyStatus(s); const h = '#'+routeFor(s);
+  const head = `<div class="row between"><div class="row" style="gap:10px">${statusPill(s)}<span class="small muted">${esc(METHOD_LABEL[s.methodology]||'')}</span></div><span class="small muted">${st==='draft'?'Created '+ago(s.created_at):s.synthesized_at?'Synthesised '+ago(s.synthesized_at):'Updated '+ago(s.updated_at)}</span></div>
+    <h3>${esc(s.title||'Untitled study')}</h3><p class="small muted">${audienceLine(s)}</p>`;
+  let body='', cta='';
+  if(s.synthesized_at){
+    const recs = rows('Recommendation',r=>r.study_id===s.id&&r.workstream!=='research'); const shipped=recs.filter(r=>r.status==='done').length;
+    body = `<div class="quote pos"><p>“${esc(s.headline)}”</p></div><div class="row small muted" style="gap:14px"><span>${completedOf(s.id).length} interviews</span><span>${shipped} of ${recs.length} fixes shipped</span></div>`;
+    cta = 'View insights';
+  } else if(st==='live'||st==='synthesizing'){
+    const d = completedOf(s.id).length, l = sessionsOf(s.id).filter(x=>x.started_at&&!x.ended_at).length;
+    body = `<div class="stack" style="gap:6px"><div class="row between small"><span>${d} of ${s.sample_size} interviews</span><span class="muted">${l} in progress</span></div><div class="bar"><i style="width:${Math.min(100,d/Math.max(1,s.sample_size)*100)}%"></i></div></div>`;
+    cta = 'Open live monitor';
+  } else {
+    body = `<div class="row small muted" style="gap:14px"><span>${questionsOf(s.id).length} questions</span><span>${inr(studyBudget(s).total)} total</span><span>~${durTxt(estTurnaround(s.sample_size,s.max_duration_min))} to insights</span></div>`;
+    cta = 'Review & launch';
+  }
+  return `<a class="card stack card-link" href="${h}">${head}${body}<span class="link small" style="align-self:flex-start">${cta} →</span></a>`;
+}
+
+// ---------- insights reveal (peak-end) ----------
+function revealBlock(s){
+  const th = rows('Theme',t=>t.study_id===s.id); const ver = th.filter(t=>t.evidence_level==='verified').length;
+  const ev = rows('Evidence',e=>th.some(t=>t.id===e.theme_id)).length;
+  return `<section class="reveal stack" role="status">
+    <span class="pill solid" style="align-self:flex-start">${ic('spark')}Your insights are ready</span>
+    <h1 class="reveal-h">${esc(s.headline)}</h1>
+    <div class="row reveal-stats"><div><b class="num">${completedOf(s.id).length}</b><span>real conversations</span></div><div><b class="num">${ver}</b><span>verified themes</span></div><div><b class="num">${ev}</b><span>quoted clips</span></div></div>
+    <div class="row"><button class="btn primary lg" data-act="reveal-close">See the evidence ${ic('right')}</button><a class="btn lg" href="#actions-${s.id}" data-act="reveal-done">Plan next steps</a></div>
+  </section>`;
+}
+
+// ---------- loss aversion on always-on ----------
+function lossBanner(){
+  const bad = rows('Order',o=>o.workspace_id===ui.ws&&o.status!=='delivered');
+  if(!bad.length) return '';
+  const val = bad.reduce((a,o)=>a+o.value_inr,0);
+  const heard = rows('Trigger',t=>t.workspace_id===ui.ws&&t.event==='return_or_rto').reduce((a,t)=>a+completedOf(t.study_id).length,0);
+  return `<section class="card banner loss"><div><b style="font-size:17px">${inr(val)} of orders came back as returns or RTO</b><p class="small muted">${bad.length} orders in your Shopify history. You've heard from ${heard} of those customers so far. Every unheard return is a reason you can't fix.</p></div></section>`;
+}
+
+// ---------- actions progress (Zeigarnik) ----------
+function actionsProgress(s){
+  const recs = rows('Recommendation',r=>r.study_id===s.id&&r.workstream!=='research'); if(!recs.length) return '';
+  const shipped = recs.filter(r=>r.status==='done').length, moving = recs.filter(r=>['adopted','in_progress'].includes(r.status)).length;
+  return `<section class="card stack" style="gap:8px"><div class="row between"><b>${shipped} of ${recs.length} fixes shipped</b><span class="small muted">${moving} in progress · ${recs.length-shipped-moving} waiting for a decision</span></div><div class="bar ok"><i style="width:${shipped/recs.length*100}%"></i></div></section>`;
+}
+
+// ---------- mobile action bar (Fitts) ----------
+function mobileCTA(label, href){ return `<div class="mcta"><a class="btn primary lg" href="${href}">${label}</a></div>`; }
+
+// ---------- landing page ----------
+function vWelcome(){
+  const done = rows('Session',x=>x.ended_at);
+  const verified = done.filter(x=>buyerStats(x.person_id)).length;
+  const studiesDone = rows('Study',s=>s.synthesized_at&&s.launched_at&&!isTriggerStudy(s));
+  const tat = studiesDone.length? studiesDone.reduce((a,s)=>a+(T(s.synthesized_at)-T(s.launched_at)),0)/studiesDone.length/3600000 : 3;
+  return `<div class="lp">
+  <header class="lp-nav"><div class="brand" style="padding:0"><div class="logo">V</div><b>Voqiva</b></div>
+    <nav class="row hide-sm" style="gap:22px"><button class="link" style="color:var(--fg)" data-act="lp-jump" data-k="how">How it works</button><button class="link" style="color:var(--fg)" data-act="lp-jump" data-k="pricing">Pricing</button></nav>
+    <div class="row"><button class="btn" data-act="lp-demo">Explore demo</button><button class="btn primary" data-act="lp-jump" data-k="start">Start free</button></div></header>
+  <section class="lp-hero">
+    <div class="stack" style="gap:18px;min-width:0">
+      <span class="eyebrow" style="color:var(--accent)">For Indian D2C brands</span>
+      <h1 class="lp-h1">Hear from your real buyers by tonight.</h1>
+      <p class="lp-sub">Voqiva interviews people who actually bought from you, by WhatsApp voice note, then shows what they said next to what they bought. When you ship a fix, it tells you if the numbers moved.</p>
+      <div class="row"><button class="btn primary lg" data-act="lp-jump" data-k="start">Run your first 10 interviews free</button><button class="btn lg" data-act="lp-demo">Explore the demo</button></div>
+      <span class="small muted">No agency, no retainer. Your customers opt in; you only pay their incentives.</span>
+    </div>
+    <div class="lp-phone" aria-hidden="true">
+      <div class="small" style="font-weight:600;color:var(--accent)">UrbanKhaadi · Voqiva AI</div>
+      <div class="bubble mod">${voiceNote('You returned your kurta last week. What happened?',false)}<div class="small">You returned your kurta last week. What happened?</div></div>
+      <div class="bubble par">${voiceNote('The size chart said M but it fit like an L. I wanted to exchange, not refund.',true)}<div>The size chart said M but it fit like an L. I wanted to exchange, not refund.</div></div>
+      <span class="pill buy" style="align-self:flex-end">${ic('check')}Bought 12 Nov · ₹1,899 · returned</span>
+    </div>
+  </section>
+  <section class="lp-proof"><div><b class="num">${done.length}</b><span>conversations</span></div><div><b class="num">${done.length?Math.round(verified/done.length*100):0}%</b><span>matched to a real order</span></div><div><b class="num">${tat.toFixed(1)}h</b><span>question to insight</span></div><div><b class="num">${rows('Person',p=>!p.cohort_import_id).length}</b><span>verified panelists</span></div><span class="small faint" style="grid-column:1/-1">Numbers from the demo workspace in this prototype.</span></section>
+  <section class="lp-compare">
+    <div class="card stack"><span class="eyebrow">Research agency</span><h3>₹1.5–2 lakh · 3–4 weeks</h3><ul class="lp-list bad"><li>Respondents you can't verify. Industry studies put survey fraud at 15–45%.</li><li>A deck at the end, no link to what customers actually bought</li><li>No way to tell if the recommendation worked</li></ul></div>
+    <div class="card stack" style="border-color:var(--accent)"><span class="eyebrow" style="color:var(--accent)">Voqiva</span><h3>From ₹0 · tonight</h3><ul class="lp-list good"><li>Only people with a real order, who opted in</li><li>Every quote shows what that person bought and returned</li><li>Outcome tracking shows if the fix moved repeat rate, returns or AOV</li></ul></div>
+  </section>
+  <section id="lp-how" class="stack" style="gap:16px"><h2>How it works</h2><div class="grid g3">
+    <div class="card stack"><span class="lp-n">1</span><h3>Ask in plain English</h3><p class="muted small">“Why don't first-time buyers reorder?” The AI writes the screener, the questions and the budget.</p></div>
+    <div class="card stack"><span class="lp-n">2</span><h3>Your buyers answer on WhatsApp</h3><p class="muted small">Voice notes, in their own time. Paid by UPI on completion, whatever their opinion.</p></div>
+    <div class="card stack"><span class="lp-n">3</span><h3>Act, then prove it</h3><p class="muted small">Themes backed by quotes and order data. Ship a fix and Voqiva measures the result 30 days later.</p></div></div></section>
+  <section id="lp-pricing" class="stack" style="gap:16px"><h2>Pricing</h2><div class="grid g3">${PLANS.map(p=>`<div class="card stack" style="${p.k==='free'?'border-color:var(--accent)':''}"><b style="font-family:var(--display);font-size:19px">${p.name}</b><div class="num" style="font-family:var(--display);font-size:26px;font-weight:600">${p.price}</div><p class="small muted">${p.line}</p></div>`).join('')}</div></section>
+  <section id="lp-start" class="card lp-final">
+    <div class="stack" style="gap:8px;min-width:0"><h2>Run your first 10 interviews free</h2><p class="muted">Create your workspace. It comes with sample studies so you can explore before connecting your store.</p></div>
+    <form class="stack" data-submit="signup" style="gap:10px;min-width:0">
+      <div><label class="lbl" for="su-name">Your name</label><input class="field" id="su-name" required autocomplete="name" placeholder="e.g. Tanu Dewani"></div>
+      <div><label class="lbl" for="su-brand">Brand name</label><input class="field" id="su-brand" required placeholder="e.g. AURELLE"></div>
+      <div><label class="lbl" for="su-email">Work email</label><input class="field" id="su-email" type="email" required autocomplete="email" placeholder="you@brand.in"></div>
+      <button class="btn primary lg" type="submit">Create my workspace ${ic('right')}</button>
+      <span class="small faint">Prototype: nothing is sent anywhere. Your details stay in this browser.</span>
+    </form>
+  </section>
+  <footer class="small muted" style="padding:28px 0 12px">Voqiva · prototype · <button class="link small" data-act="lp-demo">Open the demo workspace</button></footer>
+  </div>`;
+}

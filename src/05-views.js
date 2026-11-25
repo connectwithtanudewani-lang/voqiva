@@ -1,7 +1,7 @@
 // ---------- UI state, router, shell ----------
 const ui = {ws:null,user:null,route:{view:'home',id:null},nd:null,homeTab:'all',sel:{},themeFilter:'all',liveTab:'feed',showAll:false,openEv:{},partTab:null,confirmReset:false,search:'',ndBusy:null,addRule:false,showLedger:30,showPeople:40,focusTheme:null};
 const VIEWS = ['home','studies','new','plan','live','report','actions','participants','wallet','account','help'];
-function parseHash(){ const h=(location.hash||'#home').slice(1); const m=h.match(/^([a-z]+)(?:-(.+))?$/); return m&&VIEWS.includes(m[1])?{view:m[1],id:m[2]||null}:{view:'home',id:null}; }
+function parseHash(){ const h=(location.hash||'').slice(1); if(!h) return {view:(DB&&DB._meta&&!DB._meta.onboarded)?'welcome':'home',id:null}; const m=h.match(/^([a-z]+)(?:-(.+))?$/); return m&&VIEWS.includes(m[1])?{view:m[1],id:m[2]||null}:{view:'home',id:null}; }
 function go(h){ if(location.hash==='#'+h){ ui.route=parseHash(); render(); window.scrollTo(0,0); } else location.hash=h; }
 window.addEventListener('hashchange',()=>{ ui.route=parseHash(); document.getElementById('rail').classList.remove('open'); render(); window.scrollTo(0,0); });
 function toast(msg){ const r=document.getElementById('toast-root'); r.innerHTML=`<div class="toast" role="status">${esc(msg)}</div>`; clearTimeout(toast.t); toast.t=setTimeout(()=>r.innerHTML='',3800); }
@@ -73,11 +73,14 @@ function renderSearch(){
 function routeFor(s){ return {draft:'plan-',live:'live-',synthesizing:'live-',ready:'report-'}[studyStatus(s)]+s.id; }
 
 function render(){
-  renderRail(); renderTop();
   const v = ui.route.view, id = ui.route.id;
+  document.body.classList.toggle('landing', v==='welcome');
+  if(v!=='report') ui.reveal = null;
+  if(v!=='plan') ui.planCustom = false;
+  renderRail(); renderTop();
   const view = document.getElementById('view'), foot = document.getElementById('footer');
   foot.innerHTML='';
-  const fn = {panel:vPanel,always:vAlways,home:vHome,studies:vStudies,new:vNew,plan:vPlan,live:vLive,report:vReport,actions:vActions,participants:vParticipants,wallet:vWallet,account:vAccount,help:vHelp}[v]||vHome;
+  const fn = {welcome:vWelcome,panel:vPanel,always:vAlways,home:vHome,studies:vStudies,new:vNew,plan:vPlan,live:vLive,report:vReport,actions:vActions,participants:vParticipants,wallet:vWallet,account:vAccount,help:vHelp}[v]||vHome;
   const s = id? byId('Study',id) : null;
   if(['plan','live','report','actions'].includes(v) && (!s || s.workspace_id!==ui.ws)){ view.innerHTML = `<div class="empty">That study isn't in this workspace. <a href="#home">Back to home</a></div>`; return; }
   view.innerHTML = fn(s);
@@ -196,11 +199,11 @@ function vNew(){
   document.getElementById('footer').innerHTML = `<div class="footer-bar"><span class="small muted" id="nd-tat"></span><span class="small muted hide-sm">${ic('shield','') .replace('<svg','<svg style="width:15px;vertical-align:-3px"')} Incentives auto-released on completion</span><span style="flex:1"></span>
     <a class="btn" href="#home">Cancel</a>
     ${busy? `<button class="btn" data-act="nd-stop">${ic('stop')}Stop</button><button class="btn primary lg" disabled><span class="dot pulse"></span><span id="nd-busy">${esc(busy)}</span></button>`
-          : `<button class="btn primary lg" data-act="nd-generate">${ic('spark')}Generate AI research plan ${ic('right')}</button>`}</div>`;
+          : (nd.step>=2 ? `<button class="btn primary lg" data-act="nd-generate">${ic('spark')}Generate AI research plan ${ic('right')}</button>` : `<button class="btn primary lg" data-act="nd-next">Next: choose who to ask ${ic('right')}</button>`)}</div>`;
   return `
   <div class="crumbs"><a href="#home">${ic('left').replace('<svg','<svg style="width:15px"')} Back to dashboard</a></div>
   <section class="row between"><div class="row"><h1>New research study</h1>${nd.parent_study_id?`<span class="pill acc">Follow-up study</span>`:''}</div>
-    <div class="tabs"><button class="on">1 · Define objective &amp; cohort</button><button disabled>2 · Review plan &amp; budget</button></div></section>
+    ${studyStepper(null,'ask')}</section>
   <div class="grid split" style="grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);align-items:start">
     <div class="stack" style="gap:18px">
       <section class="card stack" style="border-left:4px solid var(--accent)">
@@ -213,8 +216,9 @@ function vNew(){
         <span class="eyebrow">Scenario templates</span>
         <div class="row" style="gap:8px">${rows('PromptTemplate',t=>t.placement==='scenario_starter').map(t=>`<button class="chip plain" data-act="starter" data-id="${t.id}">${esc(t.label)}</button>`).join('')}</div>
       </section>
-      <section class="card stack">
-        <h3>Target audience &amp; panel origin</h3><p class="muted small">Choose where Voqiva should find people to interview.</p>
+      ${nd.step>=2?'':`<section class="card tint row between"><div><b>Next: who should Voqiva ask?</b><div class="small muted">Your buyers, past respondents or a panel audience. The AI suggests one from your question.</div></div><button class="btn" data-act="nd-next">Choose who to ask ${ic('right')}</button></section>`}
+      <section class="card stack" id="nd-aud" ${nd.step>=2?'':'hidden'}>
+        <h3>Who should Voqiva ask?</h3><p class="muted small">Choose where Voqiva should find people to interview.</p>
         ${sourceBlock()}
         <span class="eyebrow" style="margin-top:6px">Audience rules picked up from your objective</span>
         <div class="row" style="gap:8px" id="nd-chips"></div>
@@ -263,6 +267,7 @@ function updateNewSide(){
   const cnt = document.getElementById('nd-count'); if(cnt) cnt.textContent = nd.objective.length+' / 1,000 characters';
   const t = document.getElementById('nd-tat'); if(t) t.innerHTML = `Estimated turnaround: <b>~${durTxt(tat)}</b>`;
   const side = document.getElementById('nd-side'); if(!side) return;
+  if(ui.ndBusy){ side.innerHTML = skeletonPlan(ui.ndBusy); return; }
   const has = nd.objective.trim().length>20;
   side.innerHTML = `
     <section class="card stack">
@@ -292,10 +297,16 @@ function vPlan(s){
   const bal = walletBalance(ui.ws), after = bal-b.total;
   const f = feasibility(s, critRows(s.id));
   const groups = [['Audience',c=>c.attribute==='segment'],['Gender & identity',c=>c.attribute==='gender'],['Age bracket',c=>c.attribute==='age'],['Cities & quotas',c=>c.attribute==='city'],['Industry & employment',c=>c.attribute==='industry'],['Habits & verification',c=>!['segment','gender','age','city','industry'].includes(c.attribute)]];
-  document.getElementById('footer').innerHTML='';
+  const canLaunch = !(after<0||!qs.length||(f.match+(s.recruitment_boost||0))===0);
+  document.getElementById('footer').innerHTML = `<div class="footer-bar"><div><div class="small muted">Total</div><b class="num" style="font-family:var(--display);font-size:22px">${inr(b.total)}</b></div>
+    <span class="small muted hide-sm">${s.audience_source!=='voqiva_panel'?`${freeLeft(ui.ws)} of ${FREE_QUOTA} free customer interviews left this month`:`Insights in about ${durTxt(estTurnaround(s.sample_size,s.max_duration_min))}`}</span><span style="flex:1"></span>
+    ${after<0?`<button class="btn" data-act="topup" data-amt="${Math.ceil(-after/1000)*1000}">Top up ${inr(Math.ceil(-after/1000)*1000)}</button>`:''}
+    <button class="btn primary lg" data-act="launch" data-id="${s.id}" ${canLaunch?'':'disabled'}>${ic('rocket')}Approve &amp; launch</button></div>`;
+  const C = ui.planCustom;
   return `
   <div class="row between"><div class="crumbs"><a href="#home">${ic('left').replace('<svg','<svg style="width:15px"')} Dashboard</a><span>/</span><span class="pill acc">${esc(s.domain||'Study')}</span></div>
-    <div class="tabs"><button>✓ Objective</button><button class="on">2 · Review plan &amp; budget</button></div></div>
+    <button class="btn sm" data-act="plan-custom">${C?ic('check')+'Done customising':'Customise plan'}</button></div>
+  ${studyStepper(s,'review')}
   <section class="stack" style="gap:6px"><input class="field" style="font-family:var(--display);font-size:clamp(24px,3vw,34px);font-weight:600;border-color:transparent;background:transparent;padding:4px 0" value="${esc(s.title||'')}" data-change="study-title" data-id="${s.id}" aria-label="Study title">
     <p class="muted" style="max-width:80ch">${esc(s.objective)}</p></section>
   <div class="grid split" style="grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);align-items:start">
@@ -303,9 +314,9 @@ function vPlan(s){
       <section class="card stack">
         <div class="row between"><div><h3>Audience &amp; cohort criteria</h3><p class="small muted">${s.audience_source==='voqiva_panel'?'Voqiva verified panel':audienceLine(s)}</p></div><span class="pill ok">Pre-screened</span></div>
         <div class="grid g2" style="gap:10px">
-          ${groups.map(([name,fn])=>{ const cs=crits.filter(fn); if(!cs.length) return ''; return `<div class="well stack" style="gap:8px"><span class="eyebrow">${name}</span><div class="row" style="gap:6px">${cs.map(c=>`<span class="chip plain">${esc(clabel(c))}${c.quota_pct?` <b class="num" style="color:var(--accent)">${c.quota_pct}%</b>`:''}<button class="link x" data-act="crit-x" data-id="${c.id}" aria-label="Remove">${ic('x').replace('<svg','<svg style="width:13px;vertical-align:-2px"')}</button></span>`).join('')}</div></div>`; }).join('') || '<div class="well small muted">No extra rules. Everyone in the selected audience is eligible.</div>'}
+          ${groups.map(([name,fn])=>{ const cs=crits.filter(fn); if(!cs.length) return ''; return `<div class="well stack" style="gap:8px"><span class="eyebrow">${name}</span><div class="row" style="gap:6px">${cs.map(c=>`<span class="chip plain">${esc(clabel(c))}${c.quota_pct?` <b class="num" style="color:var(--accent)">${c.quota_pct}%</b>`:''}${C?'':'<!--'}<button class="link x" data-act="crit-x" data-id="${c.id}" aria-label="Remove">${ic('x').replace('<svg','<svg style="width:13px;vertical-align:-2px"')}</button>${C?'':'-->'}</span>`).join('')}</div></div>`; }).join('') || '<div class="well small muted">No extra rules. Everyone in the selected audience is eligible.</div>'}
         </div>
-        ${ruleForm('plan')}
+        ${C?ruleForm('plan'):''}
         <div class="well row between" style="background:var(--accent-soft)">
           <div><b>Target sample size</b><div class="small muted">${f.match} of ${f.base} people in this audience match all rules${f.match<s.sample_size?` · <span style="color:var(--warn)">only ${f.match} can be recruited</span>`:''}</div></div>
           <div class="stepper"><button data-act="n-step" data-d="-1" aria-label="Fewer">−</button><input id="n-input" class="num" value="${s.sample_size}" data-change="n-set" aria-label="Respondents"><button data-act="n-step" data-d="1" aria-label="More">+</button></div>
@@ -315,26 +326,27 @@ function vPlan(s){
       </section>
       <section class="card stack">
         <div class="row between"><div><h3>Methodology &amp; interview protocol</h3><p class="small muted">The AI moderator asks these in order and probes each goal in real time.</p></div></div>
-        <div class="grid g2" style="gap:10px">
+        ${C?'':`<div class="row small muted" style="gap:14px"><span>${esc(METHOD_LABEL[s.methodology]||'')}</span><span>Up to ${s.max_duration_min||10} min</span><span>English</span><span>${qs.length} questions</span></div>`}
+        <div class="grid g2" style="gap:10px" ${C?'':'hidden'}>
           <div><label class="lbl" for="p-method">Method</label><select class="field" id="p-method" data-change="study-field" data-f="methodology">${Object.entries(METHOD_LABEL).map(([k,l])=>`<option value="${k}" ${s.methodology===k?'selected':''}>${l}</option>`).join('')}</select></div>
           <div><label class="lbl" for="p-dur">Max length (minutes)</label><input class="field num" id="p-dur" type="number" min="3" max="30" value="${s.max_duration_min||10}" data-change="study-field" data-f="max_duration_min"></div>
         </div>
         ${qs.map(q=>`<div class="q-card ${q.kind==='screener'?'screener':q.input_type==='slider'?'slider':q.input_type==='choice'?'choice':''} stack" style="gap:8px">
           <div class="row between"><div class="row" style="gap:8px"><span class="pill acc">Q${q.position} · ${q.kind==='screener'?'Screener':esc(q.section)}</span><span class="small muted">${INPUT_LABEL[q.input_type]}</span></div>
-            <button class="btn sm ghost" data-act="q-del" data-id="${q.id}" aria-label="Delete question">${ic('x')}</button></div>
-          <textarea id="q-${q.id}" rows="2" style="font-family:var(--display);font-size:17px" data-change="q-edit" data-id="${q.id}">${esc(q.prompt)}</textarea>
+            ${C?`<button class="btn sm ghost" data-act="q-del" data-id="${q.id}" aria-label="Delete question">${ic('x')}</button>`:''}</div>
+          ${C?`<textarea id="q-${q.id}" rows="2" style="font-family:var(--display);font-size:17px" data-change="q-edit" data-id="${q.id}">${esc(q.prompt)}</textarea>`:`<p style="font-family:var(--display);font-size:17px">${esc(q.prompt)||'<span class="faint">Empty question</span>'}</p>`}
           ${q.config&&q.input_type==='slider'?`<span class="small muted num">Range ${q.config.unit==='inr'?inr(q.config.min)+' – '+inr(q.config.max):q.config.min+' – '+q.config.max+' '+(q.config.unit||'')}</span>`:''}
           ${q.config&&q.input_type==='choice'?`<span class="small muted">Options: ${esc((q.config.options||[]).join(' · '))}</span>`:''}
           ${q.config&&q.config.card?`<span class="small muted">Card: ${esc(q.config.card)}</span>`:''}
           ${q.probe_goal?`<span class="small muted">Probe: ${esc(q.probe_goal)}</span>`:''}</div>`).join('')}
-        <button class="btn" style="align-self:flex-start" data-act="q-add">${ic('plus')}Add custom question</button>
+        ${C?`<button class="btn" style="align-self:flex-start" data-act="q-add">${ic('plus')}Add custom question</button>`:''}
       </section>
     </div>
     <aside class="stack side-sticky" style="gap:16px">
       <section class="card stack" style="border-top:4px solid var(--accent)">
         <div class="row between"><h3>Budget &amp; payout</h3><span class="pill">Itemised</span></div>
         <div class="row between"><div><b>Respondent incentives</b><div class="small muted num">${b.n} × ${inr(b.inc)} ${REWARD_LABEL[s.reward_type]}</div></div><b class="num">${inr(b.incent)}</b></div>
-        <div class="grid g2" style="gap:8px"><div><label class="lbl" for="p-inc">Per person (₹)</label><input class="field num" id="p-inc" type="number" min="50" step="50" value="${b.inc}" data-change="study-field" data-f="incentive_inr"></div>
+        <div class="grid g2" style="gap:8px" ${C?'':'hidden'}><div><label class="lbl" for="p-inc">Per person (₹)</label><input class="field num" id="p-inc" type="number" min="50" step="50" value="${b.inc}" data-change="study-field" data-f="incentive_inr"></div>
           <div><label class="lbl" for="p-rew">Reward</label><select class="field" id="p-rew" data-change="study-field" data-f="reward_type">${Object.entries(REWARD_LABEL).map(([k,l])=>`<option value="${k}" ${s.reward_type===k?'selected':''}>${l}</option>`).join('')}</select></div></div>
         ${audienceRateHint(s,b)}
         ${boostLine(b,s)}
@@ -348,7 +360,7 @@ function vPlan(s){
           <div class="row between small"><span>Current balance</span><b class="num">${inr(bal)}</b></div>
           <div class="row between small"><span>Balance after launch</span><b class="num">${inr(after)}</b></div></div>
         ${after<0?`<button class="btn" data-act="topup" data-amt="${Math.ceil(-after/1000)*1000}">${ic('wallet')}Top up ${inr(Math.ceil(-after/1000)*1000)} via UPI</button>`:''}
-        <button class="btn primary lg" data-act="launch" data-id="${s.id}" ${after<0||!qs.length||(f.match+(s.recruitment_boost||0))===0?'disabled':''}>${ic('rocket')}Approve &amp; launch (${inr(b.total)})</button>
+        ${agencyAnchor(s.sample_size||0)}
         <p class="small muted">Interviews start right away. Unused incentive is refunded to your wallet when you close the study.</p>
       </section>
       <section class="card tint stack small" style="gap:4px"><b>Estimated turnaround: ${durTxt(estTurnaround(s.sample_size,s.max_duration_min))}</b><span class="muted">${f.match} eligible people available now. Interviews run in parallel waves of 8.</span></section>
@@ -375,6 +387,7 @@ function vLive(s){
   const shown = ui.showAll? sorted : sorted.slice(0,6);
   return `
   <div class="crumbs"><a href="#studies">Studies</a><span>/</span><b>${esc(s.title)}</b></div>
+  ${studyStepper(s,'live')}
   <section class="row between" style="align-items:flex-start">
     <div class="stack" style="gap:8px"><div class="row"><h1>${esc(s.title)}</h1>${statusPill(s)}</div>
       <div class="row small muted" style="gap:14px"><span class="pill">${audienceLine(s)}</span><span>Started ${ago(s.launched_at)}</span><span>${esc(METHOD_LABEL[s.methodology])} · ${esc(LANG_LABEL[s.language])}</span><span style="color:var(--ok)">Incentive escrow: ${inr(reserve)}</span></div></div>
@@ -386,7 +399,7 @@ function vLive(s){
     </div>
   </section>
   ${running? `<section class="card tint row between"><div class="row"><div class="wave">${[14,22,10,26,16,20,12].map(h=>`<i style="height:${h}px"></i>`).join('')}</div><div><b>${esc(FIELD.msg)}</b><div class="small muted">${FIELD.done} of ${FIELD.total} done · responses are AI-simulated in this prototype</div></div></div><div class="bar" style="width:200px"><i style="width:${FIELD.done/FIELD.total*100}%"></i></div></section>`:''}
-  ${synth? `<section class="card tint row"><span class="dot pulse" style="color:var(--accent)"></span><b id="synth-progress">Reading ${done.length} transcripts…</b><span style="flex:1"></span><button class="btn sm" data-act="synth-stop">${ic('stop')}Stop</button></section>`:''}
+  ${synth? `<section class="card tint row"><span class="dot pulse" style="color:var(--accent)"></span><b id="synth-progress">Reading ${done.length} transcripts…</b><span style="flex:1"></span><button class="btn sm" data-act="synth-stop">${ic('stop')}Stop</button></section>`+skeletonThemes():''}
   <section class="grid g3">
     <div class="card kpi stack"><div class="row between"><span class="eyebrow">Recruitment &amp; screening</span>${ic('shield').replace('<svg','<svg style="width:20px;color:var(--accent)"')}</div>
       <div class="big num">${q.length}<small>/ ${s.sample_size} qualified</small></div>
@@ -411,7 +424,7 @@ function vLive(s){
   </div>` : sentimentPanel(s, done)}
   ${st==='live' && done.length? `<section class="card banner"><div class="avatar" style="width:48px;height:48px">${ic('spark')}</div>
     <div><h3>${done.length} interview transcripts ready for synthesis</h3><p class="small muted">${isTriggerStudy(s)?'This always-on study keeps listening. Synthesising groups everything heard so far into themes, each backed by quotes and order data.':'Closing the study stops new interviews and refunds unused incentive. Then the AI groups what people said into themes, each backed by quotes.'}</p></div>
-    <button class="btn primary" data-act="synth" data-id="${s.id}" ${running?'disabled':''}>${isTriggerStudy(s)?'Synthesise so far':'Close &amp; synthesise'} ${ic('right')}</button></section>`:''}`;
+    <button class="btn" data-act="synth" data-id="${s.id}" ${running?'disabled':''}>${isTriggerStudy(s)?'Synthesise so far':'Close &amp; synthesise'} ${ic('right')}</button></section>`:''}`;
 }
 function sessCard(s, x, qs){
   const p = byId('Person',x.person_id); const sel = ui.sel[s.id]===x.id;
@@ -477,14 +490,16 @@ function vReport(s){
   const shown = themes.filter(t=>ui.themeFilter==='all'||t.category===ui.themeFilter);
   const cities = [...new Set(done.map(x=>byId('Person',x.person_id).city))];
   return `
+  ${ui.reveal===s.id?revealBlock(s):''}
   <div class="crumbs"><a href="#studies">Studies</a><span>/</span><a href="#live-${s.id}">${esc(s.title)}</a><span>/</span><b>Insights report</b></div>
+  ${studyStepper(s,'insights')}
   <section class="row between" style="align-items:flex-end">
     <div class="stack" style="gap:8px"><h1>Executive customer intelligence report</h1>
       <div class="row"><span class="pill ok"><span class="dot"></span>Synthesised ${ago(s.synthesized_at)}</span><span class="small muted">From ${N} verified interviews (${esc(METHOD_LABEL[s.methodology])}) across ${esc(cities.slice(0,4).join(', '))}${cities.length>4?' and more':''}.</span></div></div>
     <div class="row"><button class="btn sm" data-act="share" data-id="${s.id}">${ic('link')}${s.share_token?'Copy share link':'Create share link'}</button>
       <button class="btn sm" data-act="copy-summary" data-id="${s.id}">${ic('copy')}Copy summary</button>
       ${DLS?`<button class="btn sm" data-act="export" data-id="${s.id}">${ic('down')}Export CSV</button>`:''}
-      <a class="btn primary" href="#actions-${s.id}">Explore recommended next steps ${ic('right')}</a></div>
+      <a class="btn" href="#actions-${s.id}">Next steps ${ic('right')}</a></div>
   </section>
   <section class="card hero stack" style="gap:18px;padding:30px">
     <div class="row between"><span class="pill acc">${ic('spark')}Executive synthesis &amp; recommendation</span>
@@ -502,7 +517,8 @@ function vReport(s){
   <div class="grid g2" style="align-items:start">${shown.map(t=>themeCard(s,t,N)).join('')}</div>
   <section class="card banner"><div class="avatar" style="width:48px;height:48px">${ic('bolt')}</div>
     <div><h3>Turn these insights into product, pricing and GTM work</h3><p class="small muted">Recommendations are tied to the themes above. Measured numbers and projections are labelled separately.</p></div>
-    <a class="btn primary" href="#actions-${s.id}">Explore recommended next steps ${ic('right')}</a></section>`;
+    <a class="btn primary" href="#actions-${s.id}">Explore recommended next steps ${ic('right')}</a></section>
+  ${mobileCTA('Explore next steps →','#actions-'+s.id)}`;
 }
 function themeCard(s,t,N){
   const m = themeStats(t);
@@ -516,10 +532,10 @@ function themeCard(s,t,N){
       ${t.evidence_level==='verified'?`<span class="pill ok">${ic('shield').replace('<svg','<svg style="width:13px"')}Verified observation</span>`:`<span class="pill hyp">Emerging · treat as hypothesis</span>`}</div>
     <span class="small muted num">${m.participant_count} / ${N} participants (${pct(m.value)}) · ${esc(m.label)}</span>
     <h3 style="font-size:21px">${esc(t.headline)}</h3>
-    <p class="muted">${esc(t.body)}</p>
+    ${open?`<p class="muted">${esc(t.body)}</p>`:''}
     ${feat?(()=>{ const p=person(feat); return `<div class="quote ${qcls}"><div class="avatar">${initials(p.full_name)}</div><div class="stack" style="gap:6px"><p>“${esc(feat.quote)}”</p><span class="small row" style="gap:8px"><span><b>${esc(shortName(p.full_name))}</b>${personAge(p)?', '+personAge(p):''} · ${esc(p.city||'')}</span>${purchaseBadge(p.id)}</span></div></div>`; })():''}
-    ${sw.length?`<div class="well stack" style="gap:8px"><span class="eyebrow">Colours picked most</span><div class="grid g4" style="gap:8px">${sw.map(x=>`<div class="stack" style="gap:4px;text-align:center"><div class="swatch" style="background:${esc(x.swatch_hex)};border:1px solid var(--line)"></div><span class="small">${esc(x.label)}</span><b class="small num" style="color:var(--ok)">${x.value}% chose</b></div>`).join('')}</div></div>`:''}
-    <div class="row between"><span class="small muted">${ev.length} quoted clips</span><button class="link" data-act="ev-toggle" data-id="${t.id}">${open?'Hide evidence':'See all '+ev.length+' evidence clips'} ${ic('right').replace('<svg','<svg style="width:14px;vertical-align:-2px"')}</button></div>
+    ${sw.length&&open?`<div class="well stack" style="gap:8px"><span class="eyebrow">Colours picked most</span><div class="grid g4" style="gap:8px">${sw.map(x=>`<div class="stack" style="gap:4px;text-align:center"><div class="swatch" style="background:${esc(x.swatch_hex)};border:1px solid var(--line)"></div><span class="small">${esc(x.label)}</span><b class="small num" style="color:var(--ok)">${x.value}% chose</b></div>`).join('')}</div></div>`:''}
+    <div class="row between"><span class="small muted">${ev.length} quoted clips</span><button class="link" data-act="ev-toggle" data-id="${t.id}">${open?'Show less':'Read more · '+ev.length+' evidence clips'} ${ic('right').replace('<svg','<svg style="width:14px;vertical-align:-2px"')}</button></div>
     ${open?`<div class="stack" style="gap:8px">${ev.map(e=>{ const p=person(e); return `<div class="well stack" style="gap:4px"><span class="small">“${esc(e.quote)}”</span><div class="row between small muted"><span>${esc(shortName(p.full_name))} · ${esc(p.city||'')}</span><button class="link small" data-act="open-transcript" data-sid="${s.id}" data-id="${e.session_id}">Open transcript at ${mmss(e.start_ms)}</button></div></div>`; }).join('')}</div>`:''}
   </article>`;
 }
@@ -553,6 +569,8 @@ function vActions(s){
   const followSel = ui.sel['f-'+s.id] || (research[0]||{}).id;
   return `
   <div class="crumbs"><a href="#report-${s.id}">${ic('left').replace('<svg','<svg style="width:15px"')} Insights report</a><span>/</span><b>Action plan &amp; follow-up experiments</b></div>
+  ${studyStepper(s,'act')}
+  ${actionsProgress(s)}
   <section class="row between" style="align-items:flex-end"><div class="stack" style="gap:6px"><h1>Recommended next steps</h1><p class="muted" style="max-width:70ch">Recommendations mapped to the customer evidence from “${esc(s.title)}”. Voqiva suggests; your team decides and executes.</p></div>
     <button class="btn" data-act="copy-brief" data-id="${s.id}">${ic('copy')}Copy brief (Notion / Jira ready)</button></section>
   <section class="grid g3">

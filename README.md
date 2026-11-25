@@ -19,6 +19,7 @@ Source lives in `src/`. After editing, run `./build.sh` to regenerate `index.htm
 | `src/05-views.js` | Core screens: Home, Define Objective, Plan & Budget, Live Monitor, Insights, Action Plan |
 | `src/07-v2.js`, `08-v2-actions.js` | Customer circle, consent, orders, always-on triggers, outcome tracking, pricing |
 | `src/09-panel.js`, `10-panel-actions.js` | Voqiva panel and audience segments |
+| `src/11-ux.js`, `12-ux-actions.js` | Landing page + sign-up, first-run checklist, study stepper, insights reveal, skeletons, grouped navigation |
 | `docs/data-model.json` | Data model (v3) |
 
 ## AI

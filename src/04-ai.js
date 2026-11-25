@@ -303,7 +303,7 @@ async function runSynthesis(studyId){
     const key = DB._meta.scripts[s.id];
     if(key) synthFromScript(s,key); else synthGeneric(s);
   }
-  SYNTH = null; save();
+  SYNTH = null; ui.reveal = studyId; save();
   toast(note ? 'Synthesis ready. '+note : 'Synthesis ready.');
   go('report-'+studyId);
 }

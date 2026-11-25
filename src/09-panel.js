@@ -180,7 +180,7 @@ function vPanel(){
         <div class="row" style="gap:16px;align-items:baseline"><span class="num" style="font-family:var(--display);font-size:32px;font-weight:600">${m.length}</span><span class="small muted">${av} available · ${inr(sg.rate)} per response</span></div>
         <div class="small"><span class="pill ok">${ic('shield').replace('<svg','<svg style="width:12px"')}${esc(sg.verify)}</span></div>
         <div class="small muted">Mostly from ${top.map(([k,n])=>esc(SOURCE_LABEL[k]||k)+' ('+n+')').join(', ')}</div>
-        <div class="row"><button class="btn sm primary" data-act="seg-study" data-k="${sg.key}">Start a study</button><button class="btn sm" data-act="panel-seg" data-k="${sg.key}">See people</button></div></article>`; }).join('')}</div></section>
+        <div class="row"><button class="btn sm accent" data-act="seg-study" data-k="${sg.key}">Start a study</button><button class="btn sm" data-act="panel-seg" data-k="${sg.key}">See people</button></div></article>`; }).join('')}</div></section>
   <section class="grid g2" style="align-items:start">
     <div class="card stack"><h3>Where panelists come from</h3><p class="small muted">Every signup is opt-in. No scraped emails or LinkedIn messages.</p>
       ${Object.entries(bySrc).sort((a,b)=>b[1].n-a[1].n).map(([k,v])=>`<div class="stack" style="gap:4px"><div class="row between small"><b>${esc(SOURCE_LABEL[k]||k)}</b><span class="num">${v.n} · +${v.last30} this month${SOURCE_CPA[k]?' · ~'+inr(SOURCE_CPA[k])+' per signup':''}</span></div><div class="bar"><i style="width:${v.n/maxSrc*100}%"></i></div></div>`).join('')}

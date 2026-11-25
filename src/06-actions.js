@@ -28,7 +28,7 @@ const ACT = {
     const req = Object.assign({},nd,{criteria:ndCriteria()});
     ui.ndCtl = new AbortController(); ui.ndBusy = AI_STATE==='ready'?'Drafting your research plan…':'Building plan…'; render();
     try{
-      const {study,note} = await generatePlan(req, n=>{ const el=document.getElementById('nd-busy'); if(el) el.textContent='Drafting plan… '+Math.round(n/50)+' lines'; }, ui.ndCtl.signal);
+      const {study,note} = await generatePlan(req, n=>{ const el=document.getElementById('nd-busy'); if(el) el.textContent='Drafting plan… '+Math.round(n/50)+' lines'; const sm=document.getElementById('nd-skel-msg'); if(sm) sm.textContent='Writing questions and audience rules… '+Math.round(n/50)+' lines so far'; }, ui.ndCtl.signal);
       ui.ndBusy=null; ui.nd=null; ui.addRule=false;
       go('plan-'+study.id);
       if(note) toast(note);
@@ -81,7 +81,7 @@ const ACT = {
   'rec-status'(a){ upd('Recommendation',a.dataset.id,{status:a.dataset.to}); save(); render(); },
   'follow-pick'(a){ ui.sel['f-'+a.dataset.sid]=a.dataset.id; render(); },
   'follow-launch'(a){ const sid=a.dataset.sid; const r=byId('Recommendation',ui.sel['f-'+sid]||rows('Recommendation',x=>x.study_id===sid&&x.workstream==='research')[0].id);
-    ndInit({objective:r.body_md.replace(/\*\*|^- /gm,''),source:'parent_study',parent_study_id:sid}); go('new'); },
+    ndInit({objective:r.body_md.replace(/\*\*|^- /gm,''),source:'parent_study',parent_study_id:sid,step:2}); go('new'); },
   'part-tab'(a){ ui.partTab=a.dataset.k; ui.showPeople=40; render(); },
   'more-people'(){ ui.showPeople+=60; render(); },
   'sample-import'(a){ const src=a.dataset.src; const ci=ins('CohortImport',{workspace_id:ui.ws,name:(src==='shopify'?'Shopify':'Klaviyo')+' · '+(src==='shopify'?'Cart abandoners, last 30 days':'Newsletter subscribers who never bought')+' (sample)',source:src,created_at:iso(Date.now())});

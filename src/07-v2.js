@@ -449,7 +449,7 @@ function recCard(s,r,N){
     ${outcomePanel(r)}
     ${th?`<button class="link small" style="align-self:flex-start" data-act="goto-theme" data-sid="${s.id}" data-id="${th.id}">View the evidence: ${esc(th.name)} →</button>`:''}
     <div class="row between well" style="padding:10px 12px"><span class="small"><span class="dot" style="color:var(--ok)"></span> ${r.owner_team?'Owner: <b>'+esc(r.owner_team)+'</b>':'No owner yet'} · <span class="pill">${r.status.replace('_',' ')}</span></span>
-      <div class="row" style="gap:6px"><button class="btn sm" data-act="copy-ticket" data-id="${r.id}">${ic('copy')}Copy as ticket</button>${next?`<button class="btn sm primary" data-act="rec-status" data-id="${r.id}" data-to="${next[0]}">${next[1]}</button>`:'<span class="pill ok">Done</span>'}</div></div>
+      <div class="row" style="gap:6px"><button class="btn sm" data-act="copy-ticket" data-id="${r.id}">${ic('copy')}Copy as ticket</button>${next?`<button class="btn sm accent" data-act="rec-status" data-id="${r.id}" data-to="${next[0]}">${next[1]}</button>`:'<span class="pill ok">Done</span>'}</div></div>
   </article>`;
 }
 function impactKpi(s){
@@ -511,6 +511,7 @@ function vAlways(){
   const trs = rows('Trigger',t=>t.workspace_id===ui.ws);
   const used = new Set(trs.map(t=>t.event));
   return `<section class="row between" style="align-items:flex-end"><div class="stack" style="gap:4px"><h1>Always-on</h1><p class="muted" style="max-width:70ch">Triggers interview customers automatically when something happens in your store: a return, a missed reorder, a first purchase. A few conversations a week, and a running answer to "why".</p></div></section>
+  ${lossBanner()}
   <div class="stack">${trs.map(t=>{ const E=TRIGGER_EVENTS[t.event]; const s=byId('Study',t.study_id); const el=eligibleFor(t).length; const done=completedOf(s.id).length;
     return `<article class="card stack">
       <div class="row between"><div class="row"><span class="pill ${t.active?'ok':''}"><span class="dot ${t.active?'pulse':''}"></span>${t.active?'Listening':'Paused'}</span><h3>${esc(E.label)}</h3></div>
